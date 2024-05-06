@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.IO;
 using System.Reflection;
 using System.Xml;
 using Ini;
@@ -28,8 +27,8 @@ namespace Memoria.Launcher
                 String forcedLang = iniFile.ReadValue("Memoria", "LauncherLanguage");
 
                 String[] fileNames = String.IsNullOrEmpty(forcedLang) ?
-                    new String[] { CultureInfo.CurrentCulture.Name, CultureInfo.CurrentCulture.TwoLetterISOLanguageName } :
-                    new String[] { forcedLang, CultureInfo.CurrentCulture.Name, CultureInfo.CurrentCulture.TwoLetterISOLanguageName };
+                    new String[] { CultureInfo.CurrentCulture.Name, CultureInfo.CurrentCulture.TwoLetterISOLanguageName, CultureInfo.CurrentCulture.ThreeLetterISOLanguageName } :
+                    new String[] { forcedLang, CultureInfo.CurrentCulture.Name, CultureInfo.CurrentCulture.TwoLetterISOLanguageName, CultureInfo.CurrentCulture.ThreeLetterISOLanguageName,  };
                 foreach (String name in fileNames)
                 {
                     cur = XmlHelper.LoadEmbadedDocument(assembly, $"Languages.{name}.xml");
@@ -40,7 +39,6 @@ namespace Memoria.Launcher
                     }
                 }
                 //File.AppendAllText("MBROutput2.txt", name + \n");
-                
                 return new Lang(def, cur ?? def);
             }
             catch (Exception ex)
@@ -144,6 +142,8 @@ namespace Memoria.Launcher
                 return Instance.Value.GetString(name, nameof(Settings));
             }
 
+            public static readonly string LauncherWindowTitle = GetSettings(nameof(LauncherWindowTitle));
+
             public static readonly string ActiveMonitor = GetSettings(nameof(ActiveMonitor));
             public static readonly string PrimaryMonitor = GetSettings(nameof(PrimaryMonitor));
             public static readonly string Resolution = GetSettings(nameof(Resolution));
@@ -204,8 +204,13 @@ namespace Memoria.Launcher
             public static readonly string SBUIenabled = GetSettings(nameof(SBUIenabled));
             public static readonly string BattleTPS = GetSettings(nameof(BattleTPS));
             public static readonly string SharedFPS = GetSettings(nameof(SharedFPS));
+            public static readonly string BattleFPS = GetSettings(nameof(BattleFPS));
+            public static readonly string FieldFPS = GetSettings(nameof(FieldFPS));
+            public static readonly string WorldFPS = GetSettings(nameof(WorldFPS));
+            public static readonly string CameraStabilizer = GetSettings(nameof(CameraStabilizer));
             public static readonly string UseOrchestralMusic = GetSettings(nameof(UseOrchestralMusic));
             public static readonly string Use30FpsVideo = GetSettings(nameof(Use30FpsVideo));
+            public static readonly string MaxCardCount = GetSettings(nameof(MaxCardCount));
 
             // Settings.ini Tooltips
             public static readonly string ActiveMonitor_Tooltip = GetSettings(nameof(ActiveMonitor_Tooltip));
@@ -221,7 +226,12 @@ namespace Memoria.Launcher
             public static readonly string Use30FpsVideo_Tooltip = GetSettings(nameof(Use30FpsVideo_Tooltip));
             public static readonly string Widescreen_Tooltip = GetSettings(nameof(Widescreen_Tooltip));
             public static readonly string AntiAliasing_Tooltip = GetSettings(nameof(AntiAliasing_Tooltip));
+            public static readonly string BattleTPS_Tooltip = GetSettings(nameof(BattleTPS_Tooltip));
             public static readonly string SharedFPS_Tooltip = GetSettings(nameof(SharedFPS_Tooltip));
+            public static readonly string BattleFPS_Tooltip = GetSettings(nameof(BattleFPS_Tooltip));
+            public static readonly string FieldFPS_Tooltip = GetSettings(nameof(FieldFPS_Tooltip));
+            public static readonly string WorldFPS_Tooltip = GetSettings(nameof(WorldFPS_Tooltip));
+            public static readonly string CameraStabilizer_Tooltip = GetSettings(nameof(CameraStabilizer_Tooltip));
             public static readonly string BattleInterface_Tooltip = GetSettings(nameof(BattleInterface_Tooltip));
             public static readonly string SkipIntrosToMainMenu_Tooltip = GetSettings(nameof(SkipIntrosToMainMenu_Tooltip));
             public static readonly string SkipBattleSwirl_Tooltip = GetSettings(nameof(SkipBattleSwirl_Tooltip));
@@ -231,6 +241,7 @@ namespace Memoria.Launcher
             public static readonly string SoundVolume_Tooltip = GetSettings(nameof(SoundVolume_Tooltip));
             public static readonly string MusicVolume_Tooltip = GetSettings(nameof(MusicVolume_Tooltip));
             public static readonly string MovieVolume_Tooltip = GetSettings(nameof(MovieVolume_Tooltip));
+            public static readonly string UsePsxFont_Tooltip = GetSettings(nameof(UsePsxFont_Tooltip));
             public static readonly string FontChoice_Tooltip = GetSettings(nameof(FontChoice_Tooltip));
 
             // Memoria.ini Cheats tooltips
@@ -243,7 +254,8 @@ namespace Memoria.Launcher
             public static readonly string BattleAssistance_Tooltip = GetSettings(nameof(BattleAssistance_Tooltip));
             public static readonly string NoRandomBattles_Tooltip = GetSettings(nameof(NoRandomBattles_Tooltip));
             public static readonly string PermanentCheats_Tooltip = GetSettings(nameof(PermanentCheats_Tooltip));
-            
+            public static readonly string MaxCardCount_Tooltip = GetSettings(nameof(MaxCardCount_Tooltip));
+
 
 
         }
