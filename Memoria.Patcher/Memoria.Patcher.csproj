@@ -63,6 +63,12 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>memoria.key.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>D0E766E285EBE4E93AC723FAE9369495440A67F9</ManifestCertificateThumbprint>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />

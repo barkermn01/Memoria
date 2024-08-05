@@ -28,6 +28,7 @@ using Control = System.Windows.Controls.Control;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using MessageBox = System.Windows.MessageBox;
 using Path = System.IO.Path;
+using System.Threading.Tasks;
 
 // ReSharper disable UnusedMember.Local
 // ReSharper disable InconsistentNaming
@@ -252,40 +253,43 @@ namespace Memoria.Launcher
         
         private async void OnPropertyChanged([CallerMemberName] String propertyName = null)
         {
-            try
+            await Task.Run(() =>
             {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-                IniFile iniFile = new IniFile(_iniPath);
-                switch (propertyName)
+                try
                 {
-                    case nameof(EnableCustomShader):
-                        iniFile.WriteValue("Shaders", "Enabled ", " " + EnableCustomShader.ToString());
-                        break;
-                    case nameof(Shader_Field_Realism):
-                        iniFile.WriteValue("Shaders", "Shader_Field_Realism ", " " + Shader_Field_Realism.ToString());
-                        break;
-                    case nameof(Shader_Field_Toon):
-                        iniFile.WriteValue("Shaders", "Shader_Field_Toon ", " " + Shader_Field_Toon.ToString());
-                        break;
-                    case nameof(Shader_Field_Outlines):
-                        iniFile.WriteValue("Shaders", "Shader_Field_Outlines ", " " + Shader_Field_Outlines.ToString());
-                        break;
-                    case nameof(Shader_Battle_Realism):
-                        iniFile.WriteValue("Shaders", "Shader_Battle_Realism ", " " + Shader_Battle_Realism.ToString());
-                        break;
-                    case nameof(Shader_Battle_Toon):
-                        iniFile.WriteValue("Shaders", "Shader_Battle_Toon ", " " + Shader_Battle_Toon.ToString());
-                        break;
-                    case nameof(Shader_Battle_Outlines):
-                        iniFile.WriteValue("Shaders", "Shader_Battle_Outlines ", " " + Shader_Battle_Outlines.ToString());
-                        break;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+                    IniFile iniFile = new IniFile(_iniPath);
+                    switch (propertyName)
+                    {
+                        case nameof(EnableCustomShader):
+                            iniFile.WriteValue("Shaders", "Enabled ", " " + EnableCustomShader.ToString());
+                            break;
+                        case nameof(Shader_Field_Realism):
+                            iniFile.WriteValue("Shaders", "Shader_Field_Realism ", " " + Shader_Field_Realism.ToString());
+                            break;
+                        case nameof(Shader_Field_Toon):
+                            iniFile.WriteValue("Shaders", "Shader_Field_Toon ", " " + Shader_Field_Toon.ToString());
+                            break;
+                        case nameof(Shader_Field_Outlines):
+                            iniFile.WriteValue("Shaders", "Shader_Field_Outlines ", " " + Shader_Field_Outlines.ToString());
+                            break;
+                        case nameof(Shader_Battle_Realism):
+                            iniFile.WriteValue("Shaders", "Shader_Battle_Realism ", " " + Shader_Battle_Realism.ToString());
+                            break;
+                        case nameof(Shader_Battle_Toon):
+                            iniFile.WriteValue("Shaders", "Shader_Battle_Toon ", " " + Shader_Battle_Toon.ToString());
+                            break;
+                        case nameof(Shader_Battle_Outlines):
+                            iniFile.WriteValue("Shaders", "Shader_Battle_Outlines ", " " + Shader_Battle_Outlines.ToString());
+                            break;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                UiHelper.ShowError(Application.Current.MainWindow, ex);
-            }
+                catch (Exception ex)
+                {
+                    UiHelper.ShowError(Application.Current.MainWindow, ex);
+                }
+            });
         }
 
         #endregion

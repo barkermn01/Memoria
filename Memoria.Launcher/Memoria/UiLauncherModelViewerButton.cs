@@ -30,13 +30,16 @@ namespace Memoria.Launcher
 
         protected override async Task DoAction()
         {
-            try
+            await Task.Run(() =>
             {
-                Window adv = (Window)this.GetRootElement();
-                MainWindow mainWindow = (MainWindow)adv.Owner;
-                mainWindow.PlayButton.Click(true);
-            }
-            catch (Exception) {}
+                try
+                {
+                    Window adv = (Window)this.GetRootElement();
+                    MainWindow mainWindow = (MainWindow)adv.Owner;
+                    mainWindow.PlayButton.Click(true);
+                }
+                catch (Exception) { }
+            });
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Memoria.Launcher
             InitializeComponent();
         }
 
-        public void Click(Boolean launchModelViewer = false)
+        new public void Click(Boolean launchModelViewer = false)
         {
             if (!IsEnabled)
                 return;

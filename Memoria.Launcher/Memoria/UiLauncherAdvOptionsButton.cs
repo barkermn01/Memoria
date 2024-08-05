@@ -13,12 +13,15 @@ namespace Memoria.Launcher
 
         protected override async Task DoAction()
         {
-            MainWindow mainWindow = (MainWindow)this.GetRootElement();
-            if (mainWindow.AdvOptionsWindow == null)
-                mainWindow.AdvOptionsWindow = new AdvOptionsWindow();
-            mainWindow.AdvOptionsWindow.Owner = mainWindow;
-            mainWindow.AdvOptionsWindow.Show();
-            mainWindow.AdvOptionsWindow.Activate();
+            await Task.Run(() =>
+            {
+                MainWindow mainWindow = (MainWindow)this.GetRootElement();
+                if (mainWindow.AdvOptionsWindow == null)
+                    mainWindow.AdvOptionsWindow = new AdvOptionsWindow();
+                mainWindow.AdvOptionsWindow.Owner = mainWindow;
+                mainWindow.AdvOptionsWindow.Show();
+                mainWindow.AdvOptionsWindow.Activate();
+            });
         }
     }
 }

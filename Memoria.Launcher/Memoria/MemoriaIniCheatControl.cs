@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -568,117 +569,123 @@ namespace Memoria.Launcher
 
         private async void Refresh([CallerMemberName] String propertyName = null)
         {
-            try
+            await Task.Run(() =>
             {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
-            catch (Exception ex)
-            {
-                UiHelper.ShowError(Application.Current.MainWindow, ex);
-            }
+                try
+                {
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                }
+                catch (Exception ex)
+                {
+                    UiHelper.ShowError(Application.Current.MainWindow, ex);
+                }
+            });
         }
 
         private async void OnPropertyChanged([CallerMemberName] String propertyName = null)
         {
-            try
+            await Task.Run(() =>
             {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-                IniFile iniFile = new IniFile(_iniPath);
-                switch (propertyName)
+                try
                 {
-                    case nameof(StealingAlwaysWorks):
-                        iniFile.WriteValue("Hacks", propertyName + " ", " " + StealingAlwaysWorks);
-                        if (StealingAlwaysWorks == 0)
-                        {
-                            iniFile.WriteValue("Hacks", propertyName + " ", " 0");
-                        }
-                        else if (StealingAlwaysWorks == 1)
-                        {
-                            iniFile.WriteValue("Hacks", "Enabled ", " 1");
-                            iniFile.WriteValue("Hacks", propertyName + " ", " 2");
-                        }
-                        break;
-                    case nameof(NoAutoTrance):
-                        iniFile.WriteValue("Battle", propertyName + " ", " " + NoAutoTrance);
-                        if (NoAutoTrance == 1)
-                            iniFile.WriteValue("Battle", "Enabled ", " 1");
-                        break;
-                    case nameof(GarnetConcentrate):
-                        iniFile.WriteValue("Battle", propertyName + " ", " " + GarnetConcentrate);
-                        if (GarnetConcentrate == 1)
-                            iniFile.WriteValue("Battle", "Enabled ", " 1");
-                        break;
-                    case nameof(BreakDamageLimit):
-                        iniFile.WriteValue("Battle", propertyName + " ", " " + BreakDamageLimit);
-                        if (BreakDamageLimit == 1)
-                            iniFile.WriteValue("Battle", "Enabled ", " 1");
-                        break;
-                    case nameof(AccessBattleMenu):
-                        iniFile.WriteValue("Battle", "AccessMenus ", " " + AccessBattleMenu);
-                        iniFile.WriteValue("Battle", "AvailableMenus ", AvailableBattleMenus);
-                        if (AccessBattleMenu > 0)
-                            iniFile.WriteValue("Battle", "Enabled ", " 1");
-                        break;
-                    case nameof(SpeedMode):
-                        iniFile.WriteValue("Cheats", propertyName + " ", " " + SpeedMode);
-                        if (SpeedMode == 1)
-                            iniFile.WriteValue("Cheats", "Enabled ", " 1");
-                        break;
-                    case nameof(SpeedFactor):
-                        if (SpeedFactor < 13)
-                            iniFile.WriteValue("Cheats", propertyName + " ", " " + SpeedFactor);
-                        break;
-                    case nameof(BattleTPS):
-                        iniFile.WriteValue("Graphics", propertyName + " ", " " + BattleTPS);
-                        if (BattleTPS != 15)
-                            iniFile.WriteValue("Cheats", "Enabled ", " 1");
-                        break;
-                    case nameof(BattleAssistance):
-                        iniFile.WriteValue("Cheats", propertyName + " ", " " + BattleAssistance);
-                        iniFile.WriteValue("Cheats", "Attack9999 ", " " + BattleAssistance); // Merged
-                        if (BattleAssistance == 1)
-                            iniFile.WriteValue("Cheats", "Enabled ", " 1");
-                        break;
-                    case nameof(Attack9999):
-                        iniFile.WriteValue("Cheats", propertyName + " ", " " + Attack9999);
-                        if (Attack9999 == 1)
-                            iniFile.WriteValue("Cheats", "Enabled ", " 1");
-                        break;
-                    case nameof(NoRandomEncounter):
-                        iniFile.WriteValue("Cheats", propertyName + " ", " " + NoRandomEncounter);
-                        if (NoRandomEncounter == 1)
-                            iniFile.WriteValue("Cheats", "Enabled ", " 1");
-                        break;
-                    case nameof(MasterSkill):
-                        iniFile.WriteValue("Cheats", propertyName + " ", " " + MasterSkill);
-                        iniFile.WriteValue("Cheats", "LvMax ", " " + MasterSkill);
-                        iniFile.WriteValue("Cheats", "GilMax ", " " + MasterSkill);
-                        if (MasterSkill == 1)
-                            iniFile.WriteValue("Cheats", "Enabled ", " 1");
-                        break;
-                    case nameof(MaxCardCount):
-                        if (MaxCardCount == 1)
-                        {
-                            iniFile.WriteValue("TetraMaster", propertyName + " ", " 10000");
-                            iniFile.WriteValue("TetraMaster", "Enabled ", " 1");
-                        }
-                        else if (MaxCardCount == 0)
-                        {
-                            iniFile.WriteValue("TetraMaster", propertyName + " ", " 100");
-                        }
-                        break;
-                    case nameof(ReduceRandom):
-                        if (MaxCardCount != 0)
-                            iniFile.WriteValue("TetraMaster", "Enabled ", " 1");
-                        iniFile.WriteValue("TetraMaster", propertyName + " ", " " + ReduceRandom);
-                        break;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+                    IniFile iniFile = new IniFile(_iniPath);
+                    switch (propertyName)
+                    {
+                        case nameof(StealingAlwaysWorks):
+                            iniFile.WriteValue("Hacks", propertyName + " ", " " + StealingAlwaysWorks);
+                            if (StealingAlwaysWorks == 0)
+                            {
+                                iniFile.WriteValue("Hacks", propertyName + " ", " 0");
+                            }
+                            else if (StealingAlwaysWorks == 1)
+                            {
+                                iniFile.WriteValue("Hacks", "Enabled ", " 1");
+                                iniFile.WriteValue("Hacks", propertyName + " ", " 2");
+                            }
+                            break;
+                        case nameof(NoAutoTrance):
+                            iniFile.WriteValue("Battle", propertyName + " ", " " + NoAutoTrance);
+                            if (NoAutoTrance == 1)
+                                iniFile.WriteValue("Battle", "Enabled ", " 1");
+                            break;
+                        case nameof(GarnetConcentrate):
+                            iniFile.WriteValue("Battle", propertyName + " ", " " + GarnetConcentrate);
+                            if (GarnetConcentrate == 1)
+                                iniFile.WriteValue("Battle", "Enabled ", " 1");
+                            break;
+                        case nameof(BreakDamageLimit):
+                            iniFile.WriteValue("Battle", propertyName + " ", " " + BreakDamageLimit);
+                            if (BreakDamageLimit == 1)
+                                iniFile.WriteValue("Battle", "Enabled ", " 1");
+                            break;
+                        case nameof(AccessBattleMenu):
+                            iniFile.WriteValue("Battle", "AccessMenus ", " " + AccessBattleMenu);
+                            iniFile.WriteValue("Battle", "AvailableMenus ", AvailableBattleMenus);
+                            if (AccessBattleMenu > 0)
+                                iniFile.WriteValue("Battle", "Enabled ", " 1");
+                            break;
+                        case nameof(SpeedMode):
+                            iniFile.WriteValue("Cheats", propertyName + " ", " " + SpeedMode);
+                            if (SpeedMode == 1)
+                                iniFile.WriteValue("Cheats", "Enabled ", " 1");
+                            break;
+                        case nameof(SpeedFactor):
+                            if (SpeedFactor < 13)
+                                iniFile.WriteValue("Cheats", propertyName + " ", " " + SpeedFactor);
+                            break;
+                        case nameof(BattleTPS):
+                            iniFile.WriteValue("Graphics", propertyName + " ", " " + BattleTPS);
+                            if (BattleTPS != 15)
+                                iniFile.WriteValue("Cheats", "Enabled ", " 1");
+                            break;
+                        case nameof(BattleAssistance):
+                            iniFile.WriteValue("Cheats", propertyName + " ", " " + BattleAssistance);
+                            iniFile.WriteValue("Cheats", "Attack9999 ", " " + BattleAssistance); // Merged
+                            if (BattleAssistance == 1)
+                                iniFile.WriteValue("Cheats", "Enabled ", " 1");
+                            break;
+                        case nameof(Attack9999):
+                            iniFile.WriteValue("Cheats", propertyName + " ", " " + Attack9999);
+                            if (Attack9999 == 1)
+                                iniFile.WriteValue("Cheats", "Enabled ", " 1");
+                            break;
+                        case nameof(NoRandomEncounter):
+                            iniFile.WriteValue("Cheats", propertyName + " ", " " + NoRandomEncounter);
+                            if (NoRandomEncounter == 1)
+                                iniFile.WriteValue("Cheats", "Enabled ", " 1");
+                            break;
+                        case nameof(MasterSkill):
+                            iniFile.WriteValue("Cheats", propertyName + " ", " " + MasterSkill);
+                            iniFile.WriteValue("Cheats", "LvMax ", " " + MasterSkill);
+                            iniFile.WriteValue("Cheats", "GilMax ", " " + MasterSkill);
+                            if (MasterSkill == 1)
+                                iniFile.WriteValue("Cheats", "Enabled ", " 1");
+                            break;
+                        case nameof(MaxCardCount):
+                            if (MaxCardCount == 1)
+                            {
+                                iniFile.WriteValue("TetraMaster", propertyName + " ", " 10000");
+                                iniFile.WriteValue("TetraMaster", "Enabled ", " 1");
+                            }
+                            else if (MaxCardCount == 0)
+                            {
+                                iniFile.WriteValue("TetraMaster", propertyName + " ", " 100");
+                            }
+                            break;
+                        case nameof(ReduceRandom):
+                            if (MaxCardCount != 0)
+                                iniFile.WriteValue("TetraMaster", "Enabled ", " 1");
+                            iniFile.WriteValue("TetraMaster", propertyName + " ", " " + ReduceRandom);
+                            break;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                UiHelper.ShowError(Application.Current.MainWindow, ex);
-            }
+                catch (Exception ex)
+                {
+                    UiHelper.ShowError(Application.Current.MainWindow, ex);
+                }
+            });
         }
     }
 }

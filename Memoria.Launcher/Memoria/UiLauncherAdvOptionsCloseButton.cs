@@ -13,11 +13,14 @@ namespace Memoria.Launcher
 
         protected override async Task DoAction()
         {
-            try
+            await Task.Run(() =>
             {
-                ((Window)this.GetRootElement()).Close();
-            }
-            catch (Exception) { }
+                try
+                {
+                    ((Window)this.GetRootElement()).Close();
+                }
+                catch (Exception) { }
+            });
         }
     }
 }
