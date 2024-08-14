@@ -64,7 +64,7 @@
     </Reference>
     <Reference Include="XInputDotNetPure">
       <HintPath>..\References\XInputDotNetPure.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -337,6 +337,7 @@
     <Compile Include="Global\Sound\SoLoud\WavStream.cs" />
     <Compile Include="Global\SPS\CommonSPSSystem.cs" />
     <Compile Include="Global\SPS\SHPEffect.cs" />
+    <Compile Include="Main.cs" />
     <Compile Include="Memoria\Assets\FieldCreator\FieldCreatorScene.cs" />
     <Compile Include="Memoria\Assets\FieldCreator\PointScreenAnchor.cs" />
     <Compile Include="Memoria\Assets\FieldCreator\WavefrontObject.cs" />
@@ -1428,5 +1429,12 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
     <Deploy SolutionDir="$(SolutionDir)" TargetPath="$(TargetPath)" TargetDir="$(TargetDir)" TargetName="$(TargetName)" />
+  </Target>
+  <Target Name="AfterResolveReferences">
+    <ItemGroup>
+      <EmbeddedResource Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll'">
+        <LogicalName>%(ReferenceCopyLocalPaths.DestinationSubDirectory)%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)</LogicalName>
+      </EmbeddedResource>
+    </ItemGroup>
   </Target>
 </Project>
