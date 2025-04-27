@@ -213,19 +213,21 @@ namespace NCalc
                         btlIdFiltered |= unit.Id;
                 args.Result = btlIdFiltered;
             }
-            else if (name == "Min" && args.Parameters.Length == 2)
+            else if (name == "Min" && args.Parameters.Length >= 2)
             {
-                Int64 v1 = NCalcUtility.ConvertNCalcResult(args.Parameters[0].Evaluate(), Int64.MaxValue);
-                Int64 v2 = NCalcUtility.ConvertNCalcResult(args.Parameters[1].Evaluate(), Int64.MaxValue);
-                if (v1 != Int64.MaxValue || v2 != Int64.MaxValue)
-                    args.Result = Math.Min(v1, v2);
+                Int64 res = NCalcUtility.ConvertNCalcResult(args.Parameters[0].Evaluate(), Int64.MaxValue);
+                for (Int32 i = 1; i < args.Parameters.Length; i++)
+                    res = Math.Min(res, NCalcUtility.ConvertNCalcResult(args.Parameters[i].Evaluate(), Int64.MaxValue));
+                if (res != Int64.MaxValue)
+                    args.Result = res;
             }
-            else if (name == "Max" && args.Parameters.Length == 2)
+            else if (name == "Max" && args.Parameters.Length >= 2)
             {
-                Int64 v1 = NCalcUtility.ConvertNCalcResult(args.Parameters[0].Evaluate(), Int64.MinValue);
-                Int64 v2 = NCalcUtility.ConvertNCalcResult(args.Parameters[1].Evaluate(), Int64.MinValue);
-                if (v1 != Int64.MinValue || v2 != Int64.MinValue)
-                    args.Result = Math.Max(v1, v2);
+                Int64 res = NCalcUtility.ConvertNCalcResult(args.Parameters[0].Evaluate(), Int64.MinValue);
+                for (Int32 i = 1; i < args.Parameters.Length; i++)
+                    res = Math.Max(res, NCalcUtility.ConvertNCalcResult(args.Parameters[i].Evaluate(), Int64.MinValue));
+                if (res != Int64.MinValue)
+                    args.Result = res;
             }
             else if (name == "MemoriaLog" && args.Parameters.Length == 1)
             {
@@ -319,6 +321,7 @@ namespace NCalc
             expr.Parameters["Spirit"] = (Int32)play.elem.wpr;
             expr.Parameters["Defence"] = play.defence.PhysicalDefence;
             expr.Parameters["Evade"] = play.defence.PhysicalEvade;
+            expr.Parameters["Trance"] = play.trance;
             expr.Parameters["PlayerStatus"] = (UInt64)play.status;
             expr.Parameters["PlayerPermanentStatus"] = (UInt64)play.permanent_status;
             expr.Parameters["MagicDefence"] = play.defence.MagicalDefence;
@@ -332,7 +335,7 @@ namespace NCalc
             expr.Parameters["CharacterIndex"] = (Int32)play.Index;
             expr.Parameters["SerialNumber"] = (Int32)play.info.serial_no;
             expr.Parameters["WeaponId"] = (Int32)play.equip.Weapon;
-            expr.Parameters["WeaponShape"] = (Int32)ff9item._FF9Item_Data[play.equip.Weapon].shape;
+            expr.Parameters["WeaponShape"] = ff9item._FF9Item_Data[play.equip.Weapon].shape;
             expr.Parameters["HeadId"] = (Int32)play.equip.Head;
             expr.Parameters["WristId"] = (Int32)play.equip.Wrist;
             expr.Parameters["ArmorId"] = (Int32)play.equip.Armor;
@@ -341,8 +344,18 @@ namespace NCalc
             {
                 if (name == "HasSA" && args.Parameters.Length == 1)
                 {
-                    Int32 saIndex = (Int32)NCalcUtility.ConvertNCalcResult(args.Parameters[0].Evaluate(), 63);
-                    args.Result = ff9abil.FF9Abil_IsEnableSA(play.saExtended, (SupportAbility)saIndex);
+                    Int32 saId = (Int32)NCalcUtility.ConvertNCalcResult(args.Parameters[0].Evaluate(), (Int32)SupportAbility.Void);
+                    args.Result = ff9abil.FF9Abil_IsEnableSA(play.saExtended, (SupportAbility)saId);
+                }
+                else if (name == "HasLearntAbility" && args.Parameters.Length == 1)
+                {
+                    Int32 aaId = (Int32)NCalcUtility.ConvertNCalcResult(args.Parameters[0].Evaluate(), (Int32)BattleAbilityId.Void);
+                    args.Result = ff9abil.FF9Abil_IsMaster(play, ff9abil.GetAbilityIdFromActiveAbility((BattleAbilityId)aaId));
+                }
+                else if (name == "HasLearntSupport" && args.Parameters.Length == 1)
+                {
+                    Int32 saId = (Int32)NCalcUtility.ConvertNCalcResult(args.Parameters[0].Evaluate(), (Int32)SupportAbility.Void);
+                    args.Result = ff9abil.FF9Abil_IsMaster(play, ff9abil.GetAbilityIdFromSupportAbility((SupportAbility)saId));
                 }
             };
         }
@@ -442,6 +455,16 @@ namespace NCalc
                     Int32 aaIndex = (Int32)NCalcUtility.ConvertNCalcResult(args.Parameters[0].Evaluate(), (Int32)BattleAbilityId.Void);
                     args.Result = unit.IsAbilityAvailable((BattleAbilityId)aaIndex);
                 }
+                else if (name == prefix + "HasLearntAbility" && args.Parameters.Length == 1)
+                {
+                    Int32 aaId = (Int32)NCalcUtility.ConvertNCalcResult(args.Parameters[0].Evaluate(), (Int32)BattleAbilityId.Void);
+                    args.Result = unit.HasLearntAbility((BattleAbilityId)aaId);
+                }
+                else if (name == prefix + "HasLearntSupport" && args.Parameters.Length == 1)
+                {
+                    Int32 saId = (Int32)NCalcUtility.ConvertNCalcResult(args.Parameters[0].Evaluate(), (Int32)SupportAbility.Void);
+                    args.Result = unit.HasLearntAbility((SupportAbility)saId);
+                }
                 else if (name == prefix + "PropertyByName" && args.Parameters.Length == 1)
                 {
                     args.Result = unit.GetPropertyByName(NCalcUtility.EvaluateNCalcString(args.Parameters[0].Evaluate(), ""));
@@ -520,6 +543,10 @@ namespace NCalc
                 if (name == prefix + "HasSA" && args.Parameters.Length == 1)
                     args.Result = false;
                 else if (name == prefix + "CanUseAbility" && args.Parameters.Length == 1)
+                    args.Result = false;
+                else if (name == prefix + "HasLearntAbility" && args.Parameters.Length == 1)
+                    args.Result = false;
+                else if (name == prefix + "HasLearntSupport" && args.Parameters.Length == 1)
                     args.Result = false;
                 else if (name == prefix + "PropertyByName" && args.Parameters.Length == 1)
                     args.Result = 0;

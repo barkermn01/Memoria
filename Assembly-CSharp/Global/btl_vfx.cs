@@ -67,7 +67,7 @@ public static class btl_vfx
         }
         else if (cmdType == CharacterCommandType.Throw)
         {
-            Byte shape = ff9item._FF9Item_Data[btl_util.GetCommandItem(cmd)].shape;
+            Int32 shape = ff9item._FF9Item_Data[btl_util.GetCommandItem(cmd)].shape;
             if (shape == 1)
                 return SpecialEffect.Throw_Dagger;
             else if (shape == 2)
@@ -117,7 +117,7 @@ public static class btl_vfx
                     if (sequenceText != null)
                         cmd.aa.Info.VfxAction = new UnifiedBattleSequencer.BattleAction(sequenceText);
                 }
-                if (cmd.aa.Info.SequenceFile == null && regist.bi.player == 0)
+                if (cmd.aa.Info.SequenceFile == null && regist != null && regist.bi.player == 0)
                 {
                     if (regist.dms_geo_id == 427 && cmd.aa.Info.VfxIndex == 457) // Thunder Slash with Beatrix (Boss version)
                         cmd.aa.Info.VfxAction = new UnifiedBattleSequencer.BattleAction(ThunderSlashBeatrixFix);
@@ -185,6 +185,7 @@ public static class btl_vfx
     {
         CharacterSerialNumber serialNo = btl_util.getSerialNumber(btl);
         CharacterBattleParameter btlParam = btl_mot.BattleParameterList[serialNo];
+        BattlePlayerCharacter.PlayerMotionIndex currentMotion = btl_mot.getMotion(btl);
         if (isTrance)
         {
             btl.battleModelIsRendering = true;
@@ -198,24 +199,25 @@ public static class btl_vfx
             GeoTexAnim.geoTexAnimPlay(btl.texanimptr, 2);
         }
         btl_util.GeoSetABR(btl.gameObject, "PSX/BattleMap_StatusEffect", btl);
+        btl_mot.SetPlayerDefMotion(btl, serialNo, isTrance);
         BattlePlayerCharacter.InitAnimation(btl);
-        //btl_mot.setMotion(btl, BattlePlayerCharacter.PlayerMotionIndex.MP_IDLE_NORMAL);
+        if (currentMotion != BattlePlayerCharacter.PlayerMotionIndex.MP_MAX)
+            btl.currentAnimationName = btl.mot[(Int32)currentMotion];
         if (isTrance && btlParam.TranceParameters)
         {
-            btl.weapon_bone = btlParam.TranceWeaponBone;
-            btl.weapon_scale = btlParam.TranceWeaponSize.ToVector3(true);
-            btl.weapon_offset_pos = btlParam.TranceWeaponOffsetPos.ToVector3(false);
-            btl.weapon_offset_rot = btlParam.GetWeaponRotationFixed(btl.weapon.ModelId, true);
+            btl.weapon_bone = btl.weapon.ModelId != UInt16.MaxValue ? btlParam.TranceWeaponBone : -1;
+            btl.weaponModels[0].scale = btlParam.TranceWeaponSize.ToVector3(true);
+            btl.weaponModels[0].offset_pos = btlParam.TranceWeaponOffsetPos.ToVector3(false);
+            btl.weaponModels[0].offset_rot = btlParam.GetWeaponRotationFixed(btl.weapon.ModelId, true);
         }
         else
         {
-            btl.weapon_bone = btlParam.WeaponBone;
-            btl.weapon_scale = btlParam.WeaponSize.ToVector3(true);
-            btl.weapon_offset_pos = btlParam.WeaponOffsetPos.ToVector3(false);
-            btl.weapon_offset_rot = btlParam.GetWeaponRotationFixed(btl.weapon.ModelId, false);
+            btl.weapon_bone = btl.weapon.ModelId != UInt16.MaxValue ? btlParam.WeaponBone : -1;
+            btl.weaponModels[0].scale = btlParam.WeaponSize.ToVector3(true);
+            btl.weaponModels[0].offset_pos = btlParam.WeaponOffsetPos.ToVector3(false);
+            btl.weaponModels[0].offset_rot = btlParam.GetWeaponRotationFixed(btl.weapon.ModelId, false);
         }
         geo.geoAttach(btl.weapon_geo, btl.gameObject, btl.weapon_bone);
-        AnimationFactory.AddAnimToGameObject(btl.gameObject, btl_mot.BattleParameterList[serialNo].ModelId, true);
         btl2d.ShowMessages(true);
     }
 

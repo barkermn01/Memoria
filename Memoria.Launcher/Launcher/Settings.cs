@@ -33,6 +33,7 @@ namespace Memoria.Launcher
             //["AccessBattleMenuToggle", "_accessbattlemenutoggle", "AccessMenus", "Battle", 0, 3, 0],
             ["GarnetConcentrate", "_garnetconcentrate", "GarnetConcentrate", "Battle", 0, 1, 0],
 
+            ["AutoBattle", "_autoBattle", "AutoBattle", "Cheats", 0, 1, 1],
             ["BattleAssistance", "_battleassistance", "BattleAssistance", "Cheats", 0, 1, 1],
             ["Attack9999", "_attack9999", "Attack9999", "Cheats", 0, 1, 1],
             ["NoRandomEncounter", "_norandomencounter", "NoRandomEncounter", "Cheats", 0, 1, 1],
@@ -58,6 +59,8 @@ namespace Memoria.Launcher
             ["UseAbsoluteOrientation", "_useAbsoluteOrientation", "UseAbsoluteOrientation", "AnalogControl", 0, 1, 1],
             ["AlwaysCaptureGamepad", "_alwaysCaptureGamepad", "AlwaysCaptureGamepad", "Control", 0, 1, 1],
 
+            ["SwapConfirmCancel", "_swapConfirmCancel", "SwapConfirmCancel", "Control", 0, 1, 0],
+
             // Sliders
             ["CameraStabilizer", "_camerastabilizer", "CameraStabilizer", "Graphics", 0, 1, 85],
             ["BattleTPS", "_battletpsfactor", "BattleTPS", "Graphics", 0, 1, 15],
@@ -69,6 +72,8 @@ namespace Memoria.Launcher
             ["WMCameraHeight", "_wmcameraheight", "CameraHeight", "Worldmap", 0, 1, 100],
             ["StickThreshold", "_stickThreshold", "StickThreshold", "AnalogControl", 0, 1, 10],
         };
+
+        private readonly String[] LANG_CODES = ["US", "UK", "JP", "GR", "FR", "IT", "ES"];
 
         #region Properties
 
@@ -192,6 +197,12 @@ namespace Memoria.Launcher
         {
             get => _garnetconcentrate;
             set => SetProperty(ref _garnetconcentrate, value);
+        }
+        private Int16 _autoBattle;
+        public Int16 AutoBattle
+        {
+            get => _autoBattle;
+            set => SetProperty(ref _autoBattle, value);
         }
         private Int16 _speedmode;
         public Int16 SpeedMode
@@ -318,6 +329,13 @@ namespace Memoria.Launcher
         {
             get => _alwaysCaptureGamepad;
             set => SetProperty(ref _alwaysCaptureGamepad, value);
+        }
+
+        private Int16 _swapConfirmCancel;
+        public Int16 SwapConfirmCancel
+        {
+            get => _swapConfirmCancel;
+            set => SetProperty(ref _swapConfirmCancel, value);
         }
 
         /////////////
@@ -573,6 +591,19 @@ namespace Memoria.Launcher
             set => SetProperty(ref _autoSave, value);
         }
         public String AvailableBattleMenus => AccessBattleMenu < 3 ? " \"Equip\", \"SupportingAbility\"" : "";
+
+        private Int16 _dualLanguageMode;
+        public Int16 DualLanguageMode
+        {
+            get => _dualLanguageMode;
+            set => SetProperty(ref _dualLanguageMode, value);
+        }
+        private Int16 _dualLanguage;
+        public Int16 DualLanguage
+        {
+            get => _dualLanguage;
+            set => SetProperty(ref _dualLanguage, value);
+        }
         #endregion
 
         #region Write ini
@@ -767,7 +798,7 @@ namespace Memoria.Launcher
                         {
                             iniFile.SetSetting("Worldmap", "Enabled", "1");
                             if (var0 == 0) { var1 = 100; var2 = 55; var3 = 27; var4 = 80;  var5 = 7; }
-                            if (var0 == 1) { var1 = 290; var2 = 40; var3 = 27; var4 = 250; var5 = 15; }
+                            if (var0 == 1) { var1 = 290; var2 = 40; var3 = 25; var4 = 250; var5 = 15; }
                             if (var0 == 2) { var1 = 400; var2 = 10; var3 = 50; var4 = 300; var5 = 4; }
                             if (var0 == 3) { var1 = 450; var2 = 0; var3 = 250; var4 = 330; var5 = 0; }
                             iniFile.SetSetting("Worldmap", "MistViewDistance", $"{var1}");
@@ -803,6 +834,14 @@ namespace Memoria.Launcher
                         break;
                     case nameof(UseAbsoluteOrientation):
                         iniFile.SetSetting("AnalogControl", "UseAbsoluteOrientation", UseAbsoluteOrientation == 1 ? "3" : "0");
+                        break;
+                    case nameof(DualLanguageMode):
+                        iniFile.SetSetting("Lang", "DualLanguageMode", $"{DualLanguageMode}");
+                        if (DualLanguageMode > 0)
+                            iniFile.SetSetting("Lang", "Enabled", "1");
+                        break;
+                    case nameof(DualLanguage):
+                        iniFile.SetSetting("Lang", "DualLanguage", $"\"{LANG_CODES[DualLanguage]}\"");
                         break;
                 }
                 iniFile.Save();
@@ -1118,6 +1157,23 @@ namespace Memoria.Launcher
                 value1isInt = Int16.TryParse(value, out value1);
                 _useAbsoluteOrientation = (Int16)(value1 == 3 ? 1 : 0);
                 Refresh(nameof(UseAbsoluteOrientation));
+
+                value = iniFile.GetSetting("Lang", "DualLanguageMode");
+                value1isInt = Int16.TryParse(value, out value1);
+                _dualLanguageMode = value1;
+                Refresh(nameof(DualLanguageMode));
+                value = iniFile.GetSetting("Lang", "DualLanguage");
+                value1 = 2;
+                for (Int16 i = 0; i < LANG_CODES.Length; i++)
+                {
+                    if (String.Equals($"\"{LANG_CODES[i]}\"", value))
+                    {
+                        value1 = i;
+                        break;
+                    }
+                }
+                _dualLanguage = value1;
+                Refresh(nameof(DualLanguage));
             }
             catch (Exception ex)
             {

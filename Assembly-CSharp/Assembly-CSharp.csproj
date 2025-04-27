@@ -62,10 +62,6 @@
       <HintPath>..\References\System.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="XInputDotNetPure">
-      <HintPath>..\References\XInputDotNetPure.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <AppDesigner Include="Properties\" />
@@ -194,6 +190,25 @@
     <Compile Include="Assets\Sources\Scripts\UI\Common\FF9UIDataTool.cs" />
     <Compile Include="Assets\Sources\Scripts\UI\Common\ItemListDetailHUD.cs" />
     <Compile Include="Assets\Sources\Scripts\UI\Common\ItemListDetailWithIconHUD.cs" />
+    <Compile Include="Compression\BlockType.cs" />
+    <Compile Include="Compression\DecodeHelper.cs" />
+    <Compile Include="Compression\DeflateInput.cs" />
+    <Compile Include="Compression\Deflater.cs" />
+    <Compile Include="Compression\DeflateStream.cs" />
+    <Compile Include="Compression\DeflateStreamAsyncResult.cs" />
+    <Compile Include="Compression\FastEncoder.cs" />
+    <Compile Include="Compression\FastEncoderStatics.cs" />
+    <Compile Include="Compression\FastEncoderWindow.cs" />
+    <Compile Include="Compression\GZipDecoder.cs" />
+    <Compile Include="Compression\GZIPHeaderState.cs" />
+    <Compile Include="Compression\HuffmanTree.cs" />
+    <Compile Include="Compression\Inflater.cs" />
+    <Compile Include="Compression\InflaterState.cs" />
+    <Compile Include="Compression\InputBuffer.cs" />
+    <Compile Include="Compression\InvalidDataException.cs" />
+    <Compile Include="Compression\Match.cs" />
+    <Compile Include="Compression\MatchState.cs" />
+    <Compile Include="Compression\OutputWindow.cs" />
     <Compile Include="Global\AA_DATA.cs" />
     <Compile Include="Global\AbilityUI.cs" />
     <Compile Include="Global\Achievement\AchievementState.cs" />
@@ -317,7 +332,6 @@
     <Compile Include="Global\Button\ButtonGroupState.cs" />
     <Compile Include="Global\Button\ButtonInputHandler.cs" />
     <Compile Include="Global\Byte\ByteEncryption.cs" />
-    <Compile Include="Global\Byte\ByteReader.cs" />
     <Compile Include="Global\CALC_VAR.cs" />
     <Compile Include="Global\CAMERA_NO.cs" />
     <Compile Include="Global\Card\CardArrow.cs" />
@@ -336,12 +350,38 @@
     <Compile Include="Global\Sound\SoLoud\WavStream.cs" />
     <Compile Include="Global\SPS\CommonSPSSystem.cs" />
     <Compile Include="Global\SPS\SHPEffect.cs" />
+    <Compile Include="Memoria\Application\WindowManager.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxBone.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxDeformer.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxErrorLevel.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxDeflateWithChecksum.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxAsciiReader.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxAsciiWriter.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxBinary.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxBinaryReader.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxBinaryWriter.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxDocument.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxException.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxGeometry.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxIO.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxMaterial.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxNode.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxNodeList.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxSkeleton.cs" />
+    <Compile Include="Memoria\Assets\3DModel\FbxVersion.cs" />
+    <Compile Include="Memoria\Assets\3DModel\ModelImporter.cs" />
     <Compile Include="Memoria\Assets\Export\TranslationExporter.cs" />
     <Compile Include="Memoria\Assets\FieldCreator\FieldCreatorScene.cs" />
     <Compile Include="Memoria\Assets\FieldCreator\PointScreenAnchor.cs" />
     <Compile Include="Memoria\Assets\FieldCreator\WavefrontObject.cs" />
+    <Compile Include="Memoria\Assets\Text\Dialogs\DialogImage.cs" />
     <Compile Include="Memoria\Assets\Text\Dialogs\FFIXTextModifier.cs" />
+    <Compile Include="Memoria\Assets\Text\Dialogs\TextAnimatedTag.cs" />
+    <Compile Include="Memoria\Assets\Text\Dialogs\TextParser.cs" />
+    <Compile Include="Memoria\Assets\Text\Dialogs\UniversalTextId.cs" />
+    <Compile Include="Memoria\Assets\Text\Strings\TextDirectionBlock.cs" />
     <Compile Include="Memoria\Assets\Text\Strings\UnicodeBIDI.cs" />
+    <Compile Include="Memoria\Assets\Text\TextCSVReader.cs" />
     <Compile Include="Memoria\Assets\TIMUtils.cs" />
     <Compile Include="Memoria\Assets\Text\Strings\ITextReader.cs" />
     <Compile Include="Memoria\Assets\Text\Strings\ITextWriter.cs" />
@@ -354,12 +394,16 @@
     <Compile Include="Memoria\Battle\Calculator\EatResult.cs" />
     <Compile Include="Memoria\Battle\Scripts\IOverloadableMethod.cs" />
     <Compile Include="Memoria\Battle\Scripts\IStatusScript.cs" />
+    <Compile Include="Memoria\Configuration\Access\Lang.cs" />
     <Compile Include="Memoria\Configuration\Access\Worldmap.cs" />
     <Compile Include="Memoria\Configuration\Access\Interface.cs" />
     <Compile Include="Memoria\Configuration\Access\Shaders.cs" />
+    <Compile Include="Memoria\Configuration\IniFile.cs" />
+    <Compile Include="Memoria\Configuration\Structure\LangSection.cs" />
     <Compile Include="Memoria\Configuration\Structure\WorldmapSection.cs" />
     <Compile Include="Memoria\Configuration\Structure\InterfaceSection.cs" />
     <Compile Include="Memoria\Configuration\Structure\ShadersSection.cs" />
+    <Compile Include="Memoria\Configuration\TextPatcher.cs" />
     <Compile Include="Memoria\Data\Battle\BattleCommandHelper.cs" />
     <Compile Include="Memoria\Data\Battle\BattleCommandMenu.cs" />
     <Compile Include="Memoria\Data\Battle\BattleMagicSwordSet.cs" />
@@ -385,6 +429,10 @@
     <Compile Include="Memoria\Scenes\ControlPanel\ControlSlider.cs" />
     <Compile Include="Memoria\Scenes\ControlPanel\ControlToggle.cs" />
     <Compile Include="Memoria\Scenes\GOButtonPrefab.cs" />
+    <Compile Include="Memoria\Scenes\GOFrameBackground.cs" />
+    <Compile Include="Memoria\Scenes\GOMenuBackground.cs" />
+    <Compile Include="Memoria\Scenes\GOSimpleButton.cs" />
+    <Compile Include="Memoria\Scenes\GOSlider.cs" />
     <Compile Include="Memoria\Scenes\MenuHUD\MenuUIControlPanel.cs" />
     <Compile Include="Memoria\Scenes\GOScrollablePanel.cs" />
     <Compile Include="Memoria\Scripts\DefaultStatusDatabase.cs" />
@@ -436,14 +484,10 @@
     <Compile Include="Memoria\Assets\Import\Fields\AtlasImport.cs" />
     <Compile Include="Memoria\Assets\Import\Fields\PsdImport.cs" />
     <Compile Include="Memoria\Assets\Import\Text\CharacterNamesImporter.cs" />
-    <Compile Include="Memoria\Assets\AnimationClipReader.cs" />
+    <Compile Include="Memoria\Assets\3DModel\AnimationClipReader.cs" />
     <Compile Include="Memoria\Assets\ModelViewer\BoneHierarchyNode.cs" />
     <Compile Include="Memoria\Assets\ModelViewer\ModelViewerScene.cs" />
-    <Compile Include="Memoria\Assets\Text\Dialogs\DialogBoxConstructor.cs" />
-    <Compile Include="Memoria\Assets\Text\Dialogs\DialogBoxController.cs" />
-    <Compile Include="Memoria\Assets\Text\Dialogs\DialogBoxRenderer.cs" />
     <Compile Include="Memoria\Assets\Text\Dialogs\DialogBoxSymbols.cs" />
-    <Compile Include="Memoria\Assets\Text\Dialogs\DialogLabelFilter.cs" />
     <Compile Include="Memoria\Assets\Text\Dialogs\FFIXTextTag.cs" />
     <Compile Include="Memoria\Assets\Text\Dialogs\FFIXTextTagCode.cs" />
     <Compile Include="Memoria\Assets\Text\CharacterNamesFormatter.cs" />
@@ -663,8 +707,6 @@
     <Compile Include="Global\ff9\FF9PLAY_BASE.cs" />
     <Compile Include="Global\ff9\FF9PLAY_CHAR.cs" />
     <Compile Include="Global\ff9\FF9PLAY_EQUIP.cs" />
-    <Compile Include="Global\ff9\FF9PLAY_INFO.cs" />
-    <Compile Include="Global\ff9\FF9PLAY_SKILL.cs" />
     <Compile Include="Global\ff9\FF9PLAY_WEAPON.cs" />
     <Compile Include="Global\ff9\FF9SAVE_MINIGAME.cs" />
     <Compile Include="Global\ff9\FF9Sfx.cs" />
@@ -757,10 +799,8 @@
     <Compile Include="Global\ISoundLoader.cs" />
     <Compile Include="Global\ItemUI.cs" />
     <Compile Include="Global\JsonParser.cs" />
-    <Compile Include="Global\Language\LanguageCode.cs" />
     <Compile Include="Global\Language\LanguageName.cs" />
     <Compile Include="Global\Language\LanguageSelection.cs" />
-    <Compile Include="Global\Language\LanguageSymbol.cs" />
     <Compile Include="Global\List\ListDataTypeBase.cs" />
     <Compile Include="Global\List\ListExtension.cs" />
     <Compile Include="Global\LoadingScene.cs" />
@@ -776,7 +816,6 @@
     <Compile Include="Global\MBG_CAM_DEF.cs" />
     <Compile Include="Global\MBG_DEF.cs" />
     <Compile Include="Global\MBG_PARMS_DEF.cs" />
-    <Compile Include="Global\MenuLanguage.cs" />
     <Compile Include="Global\MinHeap.cs" />
     <Compile Include="Global\MinigameHUD.cs" />
     <Compile Include="Global\MiniGameState.cs" />
@@ -1179,7 +1218,6 @@
     <Compile Include="FF9\FF9FEQP_EQUIP.cs" />
     <Compile Include="FF9\ff9mix.cs" />
     <Compile Include="FF9\FF9MIX_DATA.cs" />
-    <Compile Include="FF9\FF9MIX_INFO.cs" />
     <Compile Include="FF9\ff9sell.cs" />
     <Compile Include="Memoria\Data\ff9shop.cs" />
     <Compile Include="FF9\FF9SHOP_INFO.cs" />
@@ -1400,6 +1438,10 @@
     <ProjectReference Include="..\Memoria.Prime\Memoria.Prime.csproj">
       <Project>{110f557e-abff-44c5-886a-c7c7f0614558}</Project>
       <Name>Memoria.Prime</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Memoria.XInputDotNetPure\Memoria.XInputDotNetPure.csproj">
+      <Project>{952700cd-a384-43a4-ac4b-52256f83836e}</Project>
+      <Name>Memoria.XInputDotNetPure</Name>
     </ProjectReference>
     <ProjectReference Include="..\UnityEngine.UI\UnityEngine.UI.csproj">
       <Project>{cbc800df-4de1-4cbc-9c97-98cbb375204f}</Project>

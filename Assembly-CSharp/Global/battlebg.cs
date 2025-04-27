@@ -32,7 +32,6 @@ public static class battlebg
         battlebg.nf_SetBbgDispAttribute(battlebg.BBG_DISP_ATTRIBUTE_ALL);
         battlebg.nf_BbgSkyAngle_Y = 0;
         battlebg.SetDefaultShader(battlebg.btlModel);
-        battlebg.objAnimModel = FF9StateSystem.Battle.FF9Battle.map.btlBGObjAnim;
         battlebg.objAnimModel = new GameObject[battlebg.nf_BbgInfoPtr.objanim];
         for (Int32 i = 0; i < battlebg.nf_BbgInfoPtr.objanim; i++)
         {
@@ -142,7 +141,7 @@ public static class battlebg
             battlebg.geoBGTexAnimService(battlebg.nf_BbgTabAddress);
         foreach (Transform transform in battlebg.btlModel.transform)
         {
-            if (battlebg.getBbgAttr(transform.name) == 8 && battlebg.nf_BbgSkyRotation != 0)
+            if (battlebg.getBbgAttr(transform.name) == battlebg.BBG_ATTR_SKY && battlebg.nf_BbgSkyRotation != 0)
             {
                 battlebg.nf_BbgSkyAngle_Y += battlebg.nf_BbgSkyRotation;
                 Vector3 eulerAngles = transform.localRotation.eulerAngles;
@@ -269,15 +268,15 @@ public static class battlebg
         switch (name)
         {
             case "Group_0":
-                return 0;
+                return battlebg.BBG_ATTR_PLUS;
             case "Group_2":
-                return 2;
+                return battlebg.BBG_ATTR_GROUND;
             case "Group_4":
-                return 4;
+                return battlebg.BBG_ATTR_MINUS;
             case "Group_8":
-                return 8;
+                return battlebg.BBG_ATTR_SKY;
         }
-        return 0;
+        return battlebg.BBG_ATTR_PLUS;
     }
 
     public static BBGINFO nf_GetBbgInfoPtr()
@@ -309,6 +308,8 @@ public static class battlebg
         GEOTEXANIMHEADER[] geotex = texheaderptr.geotex;
         for (Int32 i = 0; i < count; i++)
         {
+            if (texheaderptr._invalidAnimation[i])
+                continue;
             GEOTEXANIMHEADER geotexanimheader = geotex[i];
             if ((geotexanimheader.flags & 1) != 0)
             {
@@ -383,6 +384,8 @@ public static class battlebg
             GEOTEXANIMHEADER[] geotex = battlebg.nf_BbgTabAddress.geotex;
             for (Int32 i = 0; i < count; i++)
             {
+                if (battlebg.nf_BbgTabAddress._invalidAnimation[i])
+                    continue;
                 GEOTEXANIMHEADER geotexanimheader = geotex[i];
                 if ((geotexanimheader.flags & 5) == 5 && geotexanimheader.numframes == 0)
                 {
@@ -517,6 +520,8 @@ public static class battlebg
             geotexheader.InitBBGTextureAnim(go, extraObj);
             for (Int32 i = 0; i < geotexheader.count; i++)
             {
+                if (geotexheader._invalidAnimation[i])
+                    continue;
                 GEOTEXANIMHEADER anim = geotexheader.geotex[i];
                 Texture2D texture = textureDict[geotexheader.materials[i].mainTexture.name];
                 //List<Vector2[]> area = areaDict[texture.name];

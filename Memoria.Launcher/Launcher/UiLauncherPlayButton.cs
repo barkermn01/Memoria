@@ -22,7 +22,6 @@ namespace Memoria.Launcher
     {
         public SettingsGrid_Vanilla GameSettings { get; set; }
         public SettingsGrid_VanillaDisplay GameSettingsDisplay { get; set; }
-        private ManualResetEvent CancelEvent { get; } = new ManualResetEvent(false);
 
         public UiLauncherPlayButton()
         {
@@ -50,12 +49,6 @@ namespace Memoria.Launcher
                 }
                 catch (Exception) { }
 
-                if (GameSettings.CheckUpdates)
-                {
-                    if (await CheckUpdates((Window)this.GetRootElement(), CancelEvent, GameSettings))
-                        return;
-                }
-
                 if (GameSettingsDisplay.ScreenResolution == null)
                 {
                     MessageBox.Show((Window)this.GetRootElement(), "Please select an available resolution.", "Information", MessageBoxButton.OK, MessageBoxImage.Asterisk);
@@ -79,13 +72,25 @@ namespace Memoria.Launcher
                     return;
                 }
 
-                String[] strArray = GameSettingsDisplay.ScreenResolution.Split(' ')[0].Split('x');
+                String[] strArray = IniFile.SettingsIni.GetSetting("Settings", "ScreenResolution", GameSettingsDisplay.ScreenResolution).Split(' ')[0].Split('x');
                 Int32 screenWidth;
                 Int32 screenHeight;
                 if (strArray.Length < 2 || !Int32.TryParse(strArray[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out screenWidth) || !Int32.TryParse(strArray[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out screenHeight))
                 {
                     MessageBox.Show((Window)this.GetRootElement(), "Please select an available resolution.", "Information", MessageBoxButton.OK, MessageBoxImage.Asterisk);
                     return;
+                }
+
+                var display = DisplayInfo.Displays[activeMonitor];
+                if (GameSettingsDisplay.WindowMode == 2 || screenWidth == 0 || screenHeight == 0)
+                {
+                    screenWidth = display.monitorArea.right - display.monitorArea.left;
+                    screenHeight = display.monitorArea.bottom - display.monitorArea.top;
+                }
+                else
+                {
+                    screenWidth = Math.Min(screenWidth, display.monitorArea.right - display.monitorArea.left);
+                    screenHeight = Math.Min(screenHeight, display.monitorArea.bottom - display.monitorArea.top);
                 }
 
                 String directoyPath = Path.GetFullPath(".\\" + (GameSettings.IsX64 ? "x64" : "x86"));
@@ -136,41 +141,42 @@ namespace Memoria.Launcher
                 }
 
                 String arguments = $"-runbylauncher -single-instance -monitor {activeMonitor.ToString(CultureInfo.InvariantCulture)} -screen-width {screenWidth.ToString(CultureInfo.InvariantCulture)} -screen-height {screenHeight.ToString(CultureInfo.InvariantCulture)} -screen-fullscreen {((GameSettingsDisplay.WindowMode == 0 ^ GameSettingsDisplay.WindowMode == 2) ? "0" : "1")} {(GameSettingsDisplay.WindowMode == 2 ? "-popupwindow" : "")}";
-                await Task.Factory.StartNew(
+                // Why was this a task?
+                /*await Task.Factory.StartNew(
                     () =>
+                    {*/
+                ProcessStartInfo gameStartInfo = new ProcessStartInfo(executablePath, arguments) { UseShellExecute = false };
+                if (GameSettings.IsDebugMode)
+                    gameStartInfo.EnvironmentVariables["UNITY_GIVE_CHANCE_TO_ATTACH_DEBUGGER"] = "1";
+
+                Process gameProcess = new Process { StartInfo = gameStartInfo };
+                gameProcess.Start();
+
+                if (GameSettings.IsDebugMode)
+                {
+                    Process debuggerProcess = Process.GetProcesses().FirstOrDefault(p => p.ProcessName.StartsWith("Memoria.Debugger"));
+                    if (debuggerProcess == null)
                     {
-                        ProcessStartInfo gameStartInfo = new ProcessStartInfo(executablePath, arguments) { UseShellExecute = false };
-                        if (GameSettings.IsDebugMode)
-                            gameStartInfo.EnvironmentVariables["UNITY_GIVE_CHANCE_TO_ATTACH_DEBUGGER"] = "1";
-
-                        Process gameProcess = new Process { StartInfo = gameStartInfo };
-                        gameProcess.Start();
-
-                        if (GameSettings.IsDebugMode)
+                        try
                         {
-                            Process debuggerProcess = Process.GetProcesses().FirstOrDefault(p => p.ProcessName.StartsWith("Memoria.Debugger"));
-                            if (debuggerProcess == null)
+                            String debuggerDirectory = Path.Combine(Path.GetFullPath("Debugger"), (GameSettings.IsX64 ? "x64" : "x86"));
+                            String debuggerPath = Path.Combine(debuggerDirectory, "Memoria.Debugger.exe");
+                            String debuggerArgs = "10000"; // Timeout: 10 seconds
+                            if (Directory.Exists(debuggerDirectory) && File.Exists(debuggerPath))
                             {
-                                try
-                                {
-                                    String debuggerDirectory = Path.Combine(Path.GetFullPath("Debugger"), (GameSettings.IsX64 ? "x64" : "x86"));
-                                    String debuggerPath = Path.Combine(debuggerDirectory, "Memoria.Debugger.exe");
-                                    String debuggerArgs = "10000"; // Timeout: 10 seconds
-                                    if (Directory.Exists(debuggerDirectory) && File.Exists(debuggerPath))
-                                    {
-                                        ProcessStartInfo debuggerStartInfo = new ProcessStartInfo(debuggerPath, debuggerArgs) { WorkingDirectory = debuggerDirectory };
-                                        debuggerProcess = new Process { StartInfo = debuggerStartInfo };
-                                        debuggerProcess.Start();
-                                    }
-                                }
-                                catch (Exception)
-                                {
-                                }
-
+                                ProcessStartInfo debuggerStartInfo = new ProcessStartInfo(debuggerPath, debuggerArgs) { WorkingDirectory = debuggerDirectory };
+                                debuggerProcess = new Process { StartInfo = debuggerStartInfo };
+                                debuggerProcess.Start();
                             }
                         }
+                        catch (Exception)
+                        {
+                        }
+
                     }
-                );
+                }
+                /*}
+            );*/
                 Application.Current.Shutdown();
             }
             finally
@@ -181,8 +187,8 @@ namespace Memoria.Launcher
 
         internal static async Task<Boolean> CheckUpdates(Window rootElement, ManualResetEvent cancelEvent, SettingsGrid_Vanilla gameSettings)
         {
-            String applicationPath = Path.GetFullPath(Uri.UnescapeDataString(new UriBuilder(Assembly.GetExecutingAssembly().CodeBase).Path));
-            String applicationDirectory = Path.GetDirectoryName(applicationPath);
+            String applicationDirectory = Path.GetFullPath("./");
+            String applicationPath = Path.Combine(applicationDirectory, Path.GetFileName(Assembly.GetExecutingAssembly().Location));
             LinkedList<HttpFileInfo> updateInfo = await FindUpdatesInfo(applicationDirectory, cancelEvent, gameSettings);
             if (updateInfo.Count == 0)
                 return false;
@@ -278,7 +284,6 @@ namespace Memoria.Launcher
 
             return false;
         }
-
 
 
         private static async Task<LinkedList<HttpFileInfo>> FindUpdatesInfo(String applicationDirectory, ManualResetEvent cancelEvent, SettingsGrid_Vanilla gameSettings)

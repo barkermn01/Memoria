@@ -81,7 +81,7 @@ public class UIKeyTrigger : MonoBehaviour
 
     public static Boolean IsNeedToRemap()
     {
-        return Application.platform == RuntimePlatform.Android && PersistenSingleton<UIManager>.Instance.Dialogs.IsDialogNeedControl() && (PersistenSingleton<UIManager>.Instance.Dialogs.GetChoiceDialog() == null && EventHUD.CurrentHUD == MinigameHUD.None);
+        return Application.platform == RuntimePlatform.Android && PersistenSingleton<UIManager>.Instance.Dialogs.IsDialogNeedControl() && PersistenSingleton<UIManager>.Instance.Dialogs.GetChoiceDialog() == null && EventHUD.CurrentHUD == MinigameHUD.None;
     }
 
     public void ResetTriggerEvent()
@@ -150,6 +150,8 @@ public class UIKeyTrigger : MonoBehaviour
                 UICamera.list[0].useMouse = false;
             if (!UnityXInput.Input.anyKey && !isLockLazyInput)
                 ResetKeyCode();
+            if (Configuration.Lang.DualLanguageMode == 1)
+                Localization.UseSecondaryLanguage = IsKeyLocked(LockKey.Caps);
             AccelerateKeyNavigation();
             if (HandleMenuControlKeyPressCustomInput())
                 return;
@@ -164,7 +166,11 @@ public class UIKeyTrigger : MonoBehaviour
 
     private void AccelerateKeyNavigation()
     {
-        if (!UnityXInput.Input.anyKey && PersistenSingleton<HonoInputManager>.Instance.GetHorizontalNavigation() <= (Double)HonoInputManager.AnalogThreadhold && (PersistenSingleton<HonoInputManager>.Instance.GetHorizontalNavigation() >= -(Double)HonoInputManager.AnalogThreadhold && PersistenSingleton<HonoInputManager>.Instance.GetVerticalNavigation() <= (Double)HonoInputManager.AnalogThreadhold) && PersistenSingleton<HonoInputManager>.Instance.GetVerticalNavigation() >= -(Double)HonoInputManager.AnalogThreadhold)
+        if (!UnityXInput.Input.anyKey &&
+            HonoInputManager.Instance.GetHorizontalNavigation() <= HonoInputManager.AnalogThreadhold &&
+            HonoInputManager.Instance.GetHorizontalNavigation() >= -HonoInputManager.AnalogThreadhold &&
+            HonoInputManager.Instance.GetVerticalNavigation() <= HonoInputManager.AnalogThreadhold &&
+            HonoInputManager.Instance.GetVerticalNavigation() >= -HonoInputManager.AnalogThreadhold)
         {
             if (!firstTimeInput)
                 UICamera.EventWaitTime = 0.175f;
@@ -308,6 +314,7 @@ public class UIKeyTrigger : MonoBehaviour
                 return;
             }
 
+            Log.Message("[Soft Reset]");
             preventTurboKey = false;
 
             if (PersistenSingleton<UIManager>.Instance.UnityScene == UIManager.Scene.World && PersistenSingleton<UIManager>.Instance.WorldHUDScene != (UnityEngine.Object)null) // World Map
@@ -335,6 +342,8 @@ public class UIKeyTrigger : MonoBehaviour
             UIManager.Battle.FF9BMenu_EnableMenu(false);
             if (PersistenSingleton<UIManager>.Instance.IsPause)
                 PersistenSingleton<UIManager>.Instance.GetSceneFromState(PersistenSingleton<UIManager>.Instance.State).OnKeyPause(null);
+            FF9StateSystem.Battle.FF9Battle.btl_seq = 1; // Prevent the Start button to pause again
+            UIManager.Battle.DisableAutoBattle();
             EventHUD.Cleanup();
             EventInput.ClearPadMask();
             TimerUI.SetEnable(false);
@@ -896,8 +905,8 @@ public class UIKeyTrigger : MonoBehaviour
 
             if (VoicePlayer.scriptRequestedButtonPress && DialogManager.Instance.ActiveDialogList.Any(dial => dial.gameObject.activeInHierarchy && (dial.Style == Dialog.WindowStyle.WindowStyleAuto || dial.Style == Dialog.WindowStyle.WindowStyleTransparent)))
             {
-                ETb.sKey0 &= ~(EventInput.Pcircle | EventInput.Lcircle);
-                EventInput.ReceiveInput(EventInput.Pcircle | EventInput.Lcircle);
+                ETb.sKey &= ~EventInput.GetKeyMaskFromControl(Control.Confirm);
+                EventInput.ReceiveInput(EventInput.GetKeyMaskFromControl(Control.Confirm));
             }
         }
         return false;
@@ -908,6 +917,21 @@ public class UIKeyTrigger : MonoBehaviour
         UICamera.onNavigate = (UICamera.KeyCodeDelegate)Delegate.Combine(UICamera.onNavigate, (UICamera.KeyCodeDelegate)OnKeyNavigate);
         GameLoopManager.RaiseStartEvent();
         //DebugRectAroundObjectFactory.Run();
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
+    private static extern Int16 GetKeyState(Int32 keyCode);
+
+    public static Boolean IsKeyLocked(LockKey keyCode)
+    {
+        return (GetKeyState((Int32)keyCode) & 0xFFFF) != 0;
+    }
+
+    public enum LockKey
+    {
+        Caps = 0x14,
+        Num = 0x90,
+        Scroll = 0x91
     }
 }
 

@@ -19,6 +19,7 @@ namespace Memoria
 
         public static class Control
         {
+            public static String[] KeyBindings = Instance._control.KeyBindings;
             public static Int32 DisableMouse => Instance._control.DisableMouse;
             public static Boolean DisableMouseForMenus => (DisableMouse & 1) != 0;
             public static Boolean DisableMouseInFields => (DisableMouse & 2) != 0;
@@ -37,6 +38,7 @@ namespace Memoria
             */
             public static Boolean PSXMovementMethod => Instance._control.PSXMovementMethod;
             public static Boolean AlwaysCaptureGamepad => Instance._control.AlwaysCaptureGamepad;
+            public static Boolean SwapConfirmCancel => Instance._control.SwapConfirmCancel;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Memoria.Patcher
     static class Program
     {
         static Double ProgressPercent;
-        static bool isInstaller = false;
+        static Boolean IsSteamOverlayFixed;
         static void Main(String[] args)
         {
             try
@@ -94,11 +94,8 @@ namespace Memoria.Patcher
                 Console.ResetColor();
                 //Console.WriteLine(Lang.Message.Done.PressEnterToExit);
                 //Console.ReadLine();
-                if (!isInstaller)
-                {
-                    Console.WriteLine("The console will close automatically");
-                    Thread.Sleep(5000);
-                }
+                Console.WriteLine("The console will close automatically");
+                Thread.Sleep(5000);
             }
             else
             {
@@ -169,10 +166,11 @@ namespace Memoria.Patcher
                     Int64 uncompressedDataSize = br.ReadInt64();
                     Int64 compressedDataPosition = br.ReadInt64();
 
-                    Boolean isSteamOverlayFixed = GameLocationSteamRegistryProvider.IsSteamOverlayFixed();
-                    Boolean fixReleased = false;
-                    if (isSteamOverlayFixed)
-                        fixReleased = gameLocation.FixSteamOverlay(false); // Release the registry lock
+                    IsSteamOverlayFixed = GameLocationSteamRegistryProvider.IsSteamOverlayFixed();
+                    // NOTE: we used to disable / re-enable the Steam Overlay Fix, but it's better to overwrite FF9_Launcher.fix instead
+                    //Boolean fixReleased = false;
+                    //if (IsSteamOverlayFixed)
+                    //    fixReleased = gameLocation.FixSteamOverlay(false); // Release the registry lock
 
                     inputFile.Position = compressedDataPosition;
                     using (ConsoleProgressHandler progressHandler = new ConsoleProgressHandler(uncompressedDataSize))
@@ -191,16 +189,8 @@ namespace Memoria.Patcher
                         ProgressPercent = progressHandler.CurrentPercent;
                     }
 
-                    if (isSteamOverlayFixed && fixReleased)
-                        gameLocation.FixSteamOverlay(true); // Backup and redo the registry lock
-
-                    // Remove Memoria's LocalizationPatch.txt: the added UI texts are now stored in Localization.cs directly
-                    if (File.Exists(Path.Combine(gameLocation.StreamingAssetsPath, "Data/Text/LocalizationPatch.txt")))
-                    {
-                        File.Delete(Path.Combine(gameLocation.StreamingAssetsPath, "Data/Text/LocalizationPatch.txt"));
-                        if (Directory.GetFiles(Path.Combine(gameLocation.StreamingAssetsPath, "Data/Text")).Length == 0)
-                            Directory.Delete(Path.Combine(gameLocation.StreamingAssetsPath, "Data/Text"));
-                    }
+                    //if (IsSteamOverlayFixed && fixReleased)
+                    //    gameLocation.FixSteamOverlay(true); // Backup and redo the registry lock
                 }
                 catch (Exception ex)
                 {
@@ -369,7 +359,12 @@ namespace Memoria.Patcher
             {
                 String extension = Path.GetExtension(outputPath);
                 String outputName = Path.GetFileName(outputPath);
-                if (_filesForBackup.Contains(extension))
+                if (IsSteamOverlayFixed && outputName == GameLocationInfo.LauncherName)
+                {
+                    // In Steam Overlay Fix mode: update FF9_Launcher.fix instead of FF9_Launcher.exe
+                    outputPath = Path.ChangeExtension(outputPath, ".fix");
+                }
+                else if(_filesForBackup.Contains(extension))
                 {
                     String backupPath = Path.ChangeExtension(outputPath, ".bak");
                     if (!File.Exists(backupPath))
@@ -403,10 +398,10 @@ namespace Memoria.Patcher
                 {
                     mergedIni.RemoveAt(i--);
                 }
-                // Make sure spaces are present around =
+                // Make sure spaces are present around the = separating the field name from its value
                 if (!mergedIni[i].Trim().StartsWith(";"))
                 {
-                    var split = mergedIni[i].Split('=');
+                    var split = mergedIni[i].Split(['='], 2);
                     for (Int32 j = 0; j < split.Length; j++)
                     {
                         split[j] = split[j].Trim();

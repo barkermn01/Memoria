@@ -121,7 +121,7 @@ namespace Memoria.Scenes
             UIWidget panel = GetPanel(panelIndex);
             UILabel label = CreateUIElementForPanel<UILabel>(panel);
             label.overflowMethod = UILabel.Overflow.ClampContent;
-            label.text = message;
+            label.rawText = message;
             label.alignment = alignment;
             if (lineCount < 0)
                 label.bottomAnchor.Set(panel.transform, 0f, 50);
@@ -142,7 +142,7 @@ namespace Memoria.Scenes
         {
             ControlToggle control = new ControlToggle(this, panelIndex, toggleAction);
             control.IsToggled = isToggled;
-            control.Label.text = description;
+            control.Label.rawText = description;
             return control;
         }
 
@@ -150,7 +150,7 @@ namespace Memoria.Scenes
         {
             ControlHitBox control = new ControlHitBox(this, panelIndex, hitAction);
             control.Label.alignment = NGUIText.Alignment.Center;
-            control.Label.text = description;
+            control.Label.rawText = description;
             return control;
         }
 
@@ -166,7 +166,7 @@ namespace Memoria.Scenes
         {
             ControlSlider control = new ControlSlider(this, panelIndex, GetPanelLastRow(GetPanel(panelIndex)).Count == 0, slideAction);
             control.SetupScale(valueToSlide, slideToValue, initial);
-            control.Label.text = description;
+            control.Label.rawText = description;
             return control;
         }
 
@@ -206,7 +206,7 @@ namespace Memoria.Scenes
             frameGo.transform.parent = panelGo.transform;
             panelGo.name = name;
             frameGo.GetComponentInChildren<UILocalize>().key = String.Empty;
-            frameGo.GetComponentInChildren<UILabel>().text = name;
+            frameGo.GetComponentInChildren<UILabel>().rawText = name;
             frame.leftAnchor.target = panel.transform;
             frame.rightAnchor.target = panel.transform;
             frame.topAnchor.target = panel.transform;
@@ -416,26 +416,5 @@ namespace Memoria.Scenes
         private Dictionary<UIWidget, List<List<UIWidget>>> panelRegister = new Dictionary<UIWidget, List<List<UIWidget>>>();
         private Dictionary<Int32, Int32> panelParentLink = new Dictionary<Int32, Int32>();
         private Int32 activePanelIndex = 0;
-
-        public static void DebugLogComponents(GameObject startGo, Boolean recursive, Boolean recChild, Func<Component, String> logger)
-        {
-            foreach (Component comp in startGo.GetComponents<Component>())
-            {
-                String log = logger(comp);
-                if (!String.IsNullOrEmpty(log))
-                    Log.Message($"[PANEL] {startGo} logs: {log}");
-            }
-            if (!recursive)
-                return;
-            if (recChild)
-            {
-                for (Int32 i = 0; i < startGo.transform.childCount; i++)
-                    DebugLogComponents(startGo.GetChild(i), recursive, recChild, logger);
-            }
-            else if (startGo.transform.parent != null)
-            {
-                DebugLogComponents(startGo.transform.parent.gameObject, recursive, recChild, logger);
-            }
-        }
     }
 }

@@ -301,8 +301,7 @@ public class BattleActionCode
                     value = args;
                     try
                     {
-                        if (btl.gameObject.GetComponent<Animation>().GetClip(args) == null)
-                            AnimationFactory.AddAnimWithAnimatioName(btl.gameObject, args);
+                        AnimationFactory.AddAnimWithAnimatioName(btl.gameObject, args);
                     }
                     catch (Exception err2)
                     {
@@ -459,7 +458,7 @@ public class BattleActionCode
     public Boolean TryGetArgMessage(String key, CMD_DATA cmd, out String value)
     {
         String args;
-        if (!argument.TryGetValue(key + Localization.GetSymbol(), out args) && !argument.TryGetValue(key, out args))
+        if (!argument.TryGetValue(key + Localization.CurrentDisplaySymbol, out args) && !argument.TryGetValue(key, out args))
         {
             value = "";
             return false;

@@ -2,8 +2,6 @@
 using Memoria.Assets;
 using Memoria.Data;
 using Memoria.Prime;
-using Memoria.Prime.Collections;
-using Memoria.Prime.CSV;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -146,7 +146,7 @@ public class BGSCENE_DEF
                     currentLanguage = "Any";
                 continue;
             }
-            if (currentLanguage != "Any" && currentLanguage != Localization.GetSymbol())
+            if (currentLanguage != "Any" && currentLanguage != Localization.CurrentSymbol)
                 continue;
             Boolean processOk = true;
             if (operation == "USE_BASE_SCENE")
@@ -300,7 +300,7 @@ public class BGSCENE_DEF
         //}
         else if (operation == "Image" && arguments.Length >= 1)
         {
-            bgOverlay.memoriaImage = AssetManager.LoadTextureGeneric(File.ReadAllBytes(this.memoriaDirectory + arguments[0]));
+            bgOverlay.memoriaImage = AssetManager.LoadFromDisc<Texture2D>(AssetManager.UsePathWithDefaultFolder(this.memoriaDirectory, arguments[0]));
             if (bgOverlay.memoriaMaterial != null)
                 bgOverlay.memoriaMaterial.mainTexture = bgOverlay.memoriaImage;
         }
@@ -883,9 +883,9 @@ public class BGSCENE_DEF
             this.GenerateAtlasFromBinary();
     }
 
-    private void loadLocalizationInfo(String newName, String path)
+    public void LoadLocalizationInfo(String newName, String path)
     {
-        String symbol = Localization.GetSymbol();
+        String symbol = Localization.CurrentSymbol;
         if (symbol == "US")
             return;
 
@@ -947,7 +947,7 @@ public class BGSCENE_DEF
             this.combineMeshes = list.Contains(FF9StateSystem.Common.FF9.fldMapNo);
             if (this.combineMeshes && !Configuration.Import.Field)
             {
-                this.loadLocalizationInfo(newName, path);
+                this.LoadLocalizationInfo(newName, path);
                 this.CreateSceneCombined(fieldMap, this.useUpscaleFM);
             }
             else
@@ -1198,7 +1198,7 @@ public class BGSCENE_DEF
             Log.Message("Start importing locale overlays");
             startLocaleOvrIdx = info.startOvrIdx;
             endLocaleOvrIdx = info.endOvrIdx;
-            String symbol = Localization.GetSymbol();
+            String symbol = Localization.CurrentSymbol;
 
             int currentLocaleAtlas = 0;
             Texture2D localeReftexture = new Texture2D(atlasSide, atlasSide, TextureFormat.RGBA32, false);
@@ -1372,7 +1372,7 @@ public class BGSCENE_DEF
                     Log.Message($"{e}");
                 }
             }
-            this.loadLocalizationInfo(this.mapName, path);
+            this.LoadLocalizationInfo(this.mapName, path);
             if (Configuration.Import.Field && !Configuration.Export.Field && File.Exists(atlasPath))
                 this.importOverlaysFromPsd(fieldMap, UseUpscalFM, externalPath);
             else

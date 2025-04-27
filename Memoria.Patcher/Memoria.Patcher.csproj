@@ -3344,6 +3344,9 @@
     <Content Include="FF9_Data\EmbeddedAsset\UI\Sprites\changetodisc4.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="StreamingAssets\Data\Text\LocalizationPatch.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Content Include="StreamingAssets\Shaders\PSX\BattleCharacterShaderRef.txt" />
     <Content Include="StreamingAssets\Shaders\PSX\BattleMap_StatusEffect_RealLighting.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

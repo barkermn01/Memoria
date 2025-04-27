@@ -26,9 +26,14 @@ namespace Memoria
     {
         public const String MemoriaDictionaryPatcherPath = "DictionaryPatch.txt";
         public const String MemoriaBattlePatcherPath = "BattlePatch.txt";
+        public const String MemoriaTextPatcherPath = "TextPatch.txt";
 
-        public static void Initialize()
+        public static Char[] SpaceSeparators = [' ', '\t'];
+
+        public static void Initialize(Boolean forceInit = false)
         {
+            if (_isInitialized && !forceInit)
+                return;
             // Apply patches; the default folder (out of any mod folder) is ignored
             try
             {
@@ -37,16 +42,14 @@ namespace Memoria
                     if (String.IsNullOrEmpty(folder.FolderPath))
                         continue;
                     if (folder.TryFindAssetInModOnDisc(DataPatchers.MemoriaDictionaryPatcherPath, out String dictionaryPath))
-                    {
-                        String[] patch = File.ReadAllLines(dictionaryPath);
-                        DataPatchers.PatchDictionaries(patch);
-                    }
+                        DataPatchers.PatchDictionaries(File.ReadAllLines(dictionaryPath));
                     if (folder.TryFindAssetInModOnDisc(DataPatchers.MemoriaBattlePatcherPath, out String battlePath))
-                    {
-                        String[] patch = File.ReadAllLines(battlePath);
-                        DataPatchers.PatchBattles(patch);
-                    }
+                        DataPatchers.PatchBattles(File.ReadAllLines(battlePath));
+                    if (folder.TryFindAssetInModOnDisc(DataPatchers.MemoriaTextPatcherPath, out String textPath))
+                        TextPatcher.PatchTexts(File.ReadAllLines(textPath));
                 }
+                _isInitialized = true;
+                Log.Message($"[DataPatchers] Initialized");
             }
             catch (Exception err)
             {
@@ -431,21 +434,42 @@ namespace Memoria
                     // eg.: CharacterDefaultName 0 US Zinedine
                     // REMARK: Character default names can also be changed with the option "[Import] Text = 1" although it would monopolise the whole machinery of text importing
                     // "[Import] Text = 1" has the priority over DictionaryPatch
-                    if (CharacterNamesFormatter._characterNames == null)
+                    if (CharacterNamesFormatter.DefaultNamesByLang == null)
                         continue;
                     Int32 ID;
                     if (!Int32.TryParse(entry[1], out ID))
                         continue;
                     Dictionary<CharacterId, String> nameDict;
-                    if (!CharacterNamesFormatter._characterNames.TryGetValue(entry[2], out nameDict))
+                    if (!CharacterNamesFormatter.DefaultNamesByLang.TryGetValue(entry[2], out nameDict))
                         nameDict = new Dictionary<CharacterId, String>();
                     nameDict[(CharacterId)ID] = String.Join(" ", entry, 3, entry.Length - 3);
-                    CharacterNamesFormatter._characterNames[entry[2]] = nameDict;
-                    if (Localization.GetSymbol() == entry[2] && FF9StateSystem.Common?.FF9?.player != null && FF9StateSystem.Common.FF9.player.ContainsKey((CharacterId)ID))
+                    CharacterNamesFormatter.DefaultNamesByLang[entry[2]] = nameDict;
+                    if (Localization.CurrentSymbol == entry[2] && FF9StateSystem.Common?.FF9?.player != null && FF9StateSystem.Common.FF9.player.ContainsKey((CharacterId)ID))
                     {
                         FF9StateSystem.Common.FF9.GetPlayer((CharacterId)ID).Name = nameDict[(CharacterId)ID];
                         FF9TextTool.ChangeCharacterName((CharacterId)ID, nameDict[(CharacterId)ID]);
                     }
+                }
+                else if (String.Equals(entry[0], "CharacterSecondWeapon") && entry.Length >= 4)
+                {
+                    // eg.: CharacterSecondWeapon ZIDANE_DAGGER 6 SAME_AS_MAIN
+                    // eg.: CharacterSecondWeapon ZIDANE_DAGGER 6 GEO_WEP_B1_013 CustomTextures/MageMasher2.png
+                    // eg.: CharacterSecondWeapon ZIDANE_DAGGER 6 FORMULA "WeaponId == RegularItem_MageMasher ? 'GEO_WEP_B1_013' : 'NONE'"
+                    if (!entry[1].TryEnumParse(out CharacterSerialNumber serialNo))
+                        continue;
+                    if (!Int32.TryParse(entry[2], out Int32 boneId))
+                        continue;
+                    btl_eqp.CharacterSecondaryWeapon charWeap = new btl_eqp.CharacterSecondaryWeapon();
+                    charWeap.Attachment = boneId;
+                    charWeap.Mode = entry[3];
+                    if (entry.Length >= 5)
+                    {
+                        if (String.Equals(entry[3], "FORMULA"))
+                            charWeap.Formula = String.Join(" ", entry.Skip(4).ToArray()).Trim(_formulaTrim);
+                        else if (!String.Equals(entry[4], "null"))
+                            charWeap.Texture = entry[4];
+                    }
+                    btl_eqp.SecondaryWeaponData[serialNo] = charWeap;
                 }
                 else if (String.Equals(entry[0], "3DModel"))
                 {
@@ -526,7 +550,7 @@ namespace Memoria
             {
                 if (s.StartsWith("//"))
                     continue;
-                String[] entry = s.Trim(new char[] { ' ', '\t', '\r', '\n', '=' }).Split(new char[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                String[] entry = s.Trim(_battleTrim).Split(_battleSeparator, 2, StringSplitOptions.RemoveEmptyEntries);
                 if (entry.Length != 2)
                     continue;
                 String opcode = entry[0].TrimEnd(':');
@@ -681,7 +705,13 @@ namespace Memoria
             }
         }
 
+        private static Boolean _isInitialized;
+
         private static List<BattlePatch> _battlePatch = new List<BattlePatch>();
         private static Int32 _selectedBattleId;
+
+        private static Char[] _formulaTrim = ['"'];
+        private static Char[] _battleSeparator = [' '];
+        private static Char[] _battleTrim = [' ', '\t', '\r', '\n', '='];
     }
 }
