@@ -1,6 +1,9 @@
 ﻿using Assets.Sources.Scripts.UI.Common;
+using Global.Sound.SaXAudio;
 using Memoria;
 using Memoria.Assets;
+using Memoria.Data;
+using Memoria.Prime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +15,8 @@ public class VoicePlayer : SoundPlayer
     private static Dialog specialDialog;
     private static Int32 specialLastPlayed;
     private static Int32 specialCount = 0;
+
+    public static Boolean closeDialogOnFinish = false;
 
     public VoicePlayer()
     {
@@ -54,31 +59,54 @@ public class VoicePlayer : SoundPlayer
     {
         if (onFinished != null)
         {
-            Thread onFinishThread = new Thread(() =>
+            if (ISdLibAPIProxy.Instance is SdLibAPIWithSaXAudio)
             {
-                try
+                SaXAudio.OnFinishedDelegate handler = null;
+                handler = (soundID) =>
                 {
-                    // we need to delay if we run it instantly we're at 0 = 0 which is usless
-                    Thread.Sleep(1000);
-                    while (true)
+                    if (!watcherOfSound.ContainsKey(soundProfile))
                     {
-                        Int32 currentTime = ISdLibAPIProxy.Instance.SdSoundSystem_SoundCtrl_GetElapsedPlaybackTime(soundProfile.SoundID);
-                        if (currentTime == 0)
-                        {
-                            onFinished();
-                            break;
-                        }
-                        Thread.Sleep(200);
+                        SaXAudio.OnVoiceFinished -= handler;
+                        return;
                     }
-                    watcherOfSound.Remove(soundProfile);
-                }
-                catch (Exception)
+                    if (soundProfile.SoundID == soundID)
+                    {
+                        SaXAudio.OnVoiceFinished -= handler;
+                        watcherOfSound.Remove(soundProfile);
+                        onFinished();
+                    }
+                };
+                watcherOfSound[soundProfile] = null;
+                SaXAudio.OnVoiceFinished += handler;
+            }
+            else
+            {
+                Thread onFinishThread = new Thread(() =>
                 {
-                    watcherOfSound.Remove(soundProfile);
-                }
-            });
-            watcherOfSound[soundProfile] = onFinishThread;
-            onFinishThread.Start(soundProfile);
+                    try
+                    {
+                        // we need to delay if we run it instantly we're at 0 = 0 which is useless
+                        Thread.Sleep(500);
+                        while (true)
+                        {
+                            Int32 currentTime = ISdLibAPIProxy.Instance.SdSoundSystem_SoundCtrl_GetElapsedPlaybackTime(soundProfile.SoundID);
+                            if (currentTime == 0)
+                            {
+                                onFinished();
+                                break;
+                            }
+                            Thread.Sleep(50);
+                        }
+                        watcherOfSound.Remove(soundProfile);
+                    }
+                    catch (Exception)
+                    {
+                        watcherOfSound.Remove(soundProfile);
+                    }
+                });
+                watcherOfSound[soundProfile] = onFinishThread;
+                onFinishThread.Start(soundProfile);
+            }
         }
 
         if (ISdLibAPIProxy.Instance.SdSoundSystem_SoundCtrl_IsExist(soundProfile.SoundID) == 0)
@@ -161,19 +189,25 @@ public class VoicePlayer : SoundPlayer
 
         if (hasChoices)
         {
+            soundOfDialog.TryGetValue(dialog, out SoundProfile dialogProfile);
             dialog.OnOptionChange = (Int32 msg, Int32 optionIndex) =>
             {
                 if (dialog.CurrentState != Dialog.State.CompleteAnimation || !dialog.IsChoiceReady)
                     return;
 
+                // We don't want to interrupt the main dialog voice line
+                soundOfDialog.TryGetValue(dialog, out SoundProfile attachedVoice);
+                if (attachedVoice != null && attachedVoice == dialogProfile && ISdLibAPIProxy.Instance.SdSoundSystem_SoundCtrl_IsExist(attachedVoice.SoundID) == 1)
+                    return;
+
                 Boolean found = false;
                 List<String> choiceCandidates = [];
+                Int32 selectedVisibleOption = dialog.ActiveIndexes.Count > 0 ? Math.Max(0, dialog.ActiveIndexes.FindIndex(index => index == optionIndex)) : optionIndex;
+                String optString = selectedVisibleOption + 1 < msgStrings.Length ? msgStrings[selectedVisibleOption + 1].Trim() : "[Invalid option index]";
                 foreach (String path in candidates)
                 {
                     String vaOptionPathMain = path + "_" + optionIndex;
                     choiceCandidates.Add(vaOptionPathMain);
-                    Int32 selectedVisibleOption = dialog.ActiveIndexes.Count > 0 ? Math.Max(0, dialog.ActiveIndexes.FindIndex(index => index == optionIndex)) : optionIndex;
-                    String optString = selectedVisibleOption + 1 < msgStrings.Length ? msgStrings[selectedVisibleOption + 1].Trim() : "[Invalid option index]";
 
                     if (AssetManager.HasAssetOnDisc($"Sounds/{vaOptionPathMain}.akb", true, true) || AssetManager.HasAssetOnDisc($"Sounds/{vaOptionPathMain}.ogg", true, false))
                     {
@@ -188,7 +222,12 @@ public class VoicePlayer : SoundPlayer
 
                 if (!found)
                 {
-                    SoundLib.VALog($"field:{FieldZoneId}, msg:{messageNumber}, text:{msgString}, path(s):'{String.Join("', '", choiceCandidates.ToArray().Reverse().ToArray())}' (not found)");
+                    if (closeDialogOnFinish)
+                    {
+                        dialog.OnKeyConfirm(null);
+                        closeDialogOnFinish = false;
+                    }
+                    SoundLib.VALog($"field:{FieldZoneId}, msg:{messageNumber}, text:{optString}, path(s):'{String.Join("', '", choiceCandidates.ToArray().Reverse().ToArray())}' (not found)");
                 }
             };
 
@@ -228,6 +267,25 @@ public class VoicePlayer : SoundPlayer
     {
         if (dialog == specialDialog) specialDialog = null;
         soundOfDialog.Remove(dialog);
+
+        if (closeDialogOnFinish)
+        {
+            dialog.OnKeyConfirm(null);
+            closeDialogOnFinish = false;
+        }
+    }
+
+    private static void AfterSoundFinished_Battle(Int32 va_id, String text)
+    {
+        try
+        {
+            BattleVoice.InvokeOnBattleDialogAudioEnd(va_id, text);
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[VoiceActing] Error while running BattleScript.OnBattleDialogAudioEnd");
+            Log.Error(e);
+        }
     }
 
     public static void AfterSoundFinished(Dialog dialog)
@@ -312,7 +370,7 @@ public class VoicePlayer : SoundPlayer
             FieldZoneReleaseVoice(dialog, Configuration.VoiceActing.StopVoiceWhenDialogDismissed && !dialog.IsClosedByScript);
     }
 
-    private static void FieldZoneReleaseVoice(Dialog dialog, Boolean stopSound)
+    public static void FieldZoneReleaseVoice(Dialog dialog, Boolean stopSound)
     {
         if (soundOfDialog.TryGetValue(dialog, out SoundProfile attachedVoice))
         {
@@ -320,7 +378,7 @@ public class VoicePlayer : SoundPlayer
                 SoundLib.VoicePlayer.StopSound(attachedVoice);
             if (watcherOfSound.TryGetValue(attachedVoice, out Thread soundWatcher))
             {
-                soundWatcher.Interrupt();
+                soundWatcher?.Interrupt();
                 watcherOfSound.Remove(attachedVoice);
             }
             soundOfDialog.Remove(dialog);
@@ -329,32 +387,62 @@ public class VoicePlayer : SoundPlayer
 
     public static SoundProfile CreateLoadThenPlayVoice(Int32 soundIndex, String vaPath, Action onFinished = null)
     {
-        SoundProfile soundProfile = new SoundProfile
+        // Occasionally clear unused voices from the database
+        if (ETb.voiceDatabase.ReadAll().Count > 10)
         {
-            Code = soundIndex.ToString(),
-            Name = vaPath,
-            SoundIndex = soundIndex,
-            ResourceID = vaPath,
-            SoundProfileType = SoundProfileType.Voice,
-            SoundVolume = 1f,
-            Panning = 0f,
-            Pitch = Configuration.Audio.Backend == 0 ? 0.5f : 1f // SdLib needs 0.5f for some reason
-        };
-
-        SoundLoaderProxy.Instance.Load(soundProfile,
-        (soundProfile, db) =>
-        {
-            if (soundProfile != null)
+            List<SoundProfile> toDelete = new List<SoundProfile>();
+            foreach (SoundProfile profile in ETb.voiceDatabase.ReadAll().Values)
             {
-                SoundLib.VoicePlayer.CreateSound(soundProfile);
-                SoundLib.VoicePlayer.StartSound(soundProfile, onFinished);
-                if (db.ReadAll().ContainsKey(soundProfile.SoundIndex))
-                    db.Update(soundProfile);
-                else
-                    db.Create(soundProfile);
+                if (profile.SoundIndex == soundIndex) continue;
+
+                Boolean isUsed = AudioEffectManager.IsSaXAudio ? SaXAudio.GetVoiceCount(profile.BankID) > 0 : ISdLibAPIProxy.Instance.SdSoundSystem_SoundCtrl_IsExist(profile.SoundID) > 0;
+                if (!isUsed)
+                {
+                    StaticUnregisterBank(profile);
+                    toDelete.Add(profile);
+                }
             }
-        },
-        ETb.voiceDatabase);
+            foreach (SoundProfile profile in toDelete)
+            {
+                ETb.voiceDatabase.Delete(profile);
+            }
+        }
+
+        SoundProfile soundProfile = ETb.voiceDatabase.Read(soundIndex);
+        if (soundProfile == null)
+        {
+            soundProfile = new SoundProfile
+            {
+                Code = soundIndex.ToString(),
+                Name = vaPath,
+                SoundIndex = soundIndex,
+                ResourceID = vaPath,
+                SoundProfileType = SoundProfileType.Voice,
+                SoundVolume = 1f,
+                Panning = 0f,
+                Pitch = Configuration.Audio.Backend == 0 ? 0.5f : 1f // SdLib needs 0.5f for some reason
+            };
+
+            SoundLoaderProxy.Instance.Load(soundProfile,
+            (soundProfile, db) =>
+            {
+                if (soundProfile != null)
+                {
+                    SoundLib.VoicePlayer.CreateSound(soundProfile);
+                    SoundLib.VoicePlayer.StartSound(soundProfile, onFinished);
+                    if (db.ReadAll().ContainsKey(soundProfile.SoundIndex))
+                        db.Update(soundProfile);
+                    else
+                        db.Create(soundProfile);
+                }
+            },
+            ETb.voiceDatabase);
+        }
+        else
+        {
+            SoundLib.VoicePlayer.CreateSound(soundProfile);
+            SoundLib.VoicePlayer.StartSound(soundProfile, onFinished);
+        }
 
         return soundProfile;
     }
@@ -380,7 +468,17 @@ public class VoicePlayer : SoundPlayer
 
         SoundLib.VALog(String.Format("field:battle/{0}, msg:{1}, text:{2} path:{3}", btlFolder, va_id, text, vaPath));
 
-        CreateLoadThenPlayVoice(va_id, vaPath);
+        CreateLoadThenPlayVoice(va_id, vaPath, () => AfterSoundFinished_Battle(va_id, text));
+
+        try
+        {
+            BattleVoice.InvokeOnBattleDialogAudioStart(va_id, text);
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[VoiceActing] Error while running BattleScript.OnBattleDialogAudioStart");
+            Log.Error(e);
+        }
     }
 
     public static Boolean HoldDialogUntilSoundEnds(Int32 zoneId, Int32 universalTextId, Int32 mapNo)
