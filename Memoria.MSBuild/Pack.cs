@@ -1,4 +1,4 @@
-﻿//#define NEEDS_SIGNING
+﻿#define NEEDS_SIGNING
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -275,6 +275,7 @@ namespace Memoria.MSBuild
                 },
                 EnableRaisingEvents = true,
             };
+            _log.LogCommandLine(process.StartInfo.FileName + " " + process.StartInfo.Arguments);
             process.OutputDataReceived += (sender, e) =>
             {
                 if (!String.IsNullOrEmpty(e.Data))
