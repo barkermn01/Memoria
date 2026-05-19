@@ -142,12 +142,13 @@ public class VoicePlayer : SoundPlayer
             lock (soundOfDialog)
             {
                 List<Dialog> keys = soundOfDialog.Keys.ToList();
+                specialMessageIds.TryGetValue(Localization.CurrentSymbol, out Int32[] numbers);
                 foreach (Dialog d in keys)
                 {
                     if (d != null && !(
-                        d.Id == specialMessageIds[lang][3] ||
-                        d.Id == specialMessageIds[lang][4] ||
-                        d.Id == specialMessageIds[lang][5]
+                        d.Id == numbers[3] ||
+                        d.Id == numbers[4] ||
+                        d.Id == numbers[5]
                     ))
                         FieldZoneReleaseVoice(d, true);
                 }
