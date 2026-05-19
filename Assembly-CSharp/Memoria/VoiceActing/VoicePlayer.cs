@@ -138,11 +138,15 @@ public class VoicePlayer : SoundPlayer
         // but we don't want to stop the voice for these two messages since they are the ones indicating the end of the hunt.
         if (FieldZoneId == 276 && (messageNumber == 584 || messageNumber == 585 || messageNumber == 583)) {
             // need to fetch the dialogs and stop them.
-            soundOfDialog.All(dialogKVP => {
-                if (dialogKVP.Value != null && !(dialogKVP.Key.Id == 583 || dialogKVP.Key.Id == 585 || dialogKVP.Key.Id == 584))
-                    FieldZoneReleaseVoice(dialogKVP.Key, true);
-                return true;
-            });
+            lock (soundOfDialog)
+            {
+                List<Dialog> keys = soundOfDialog.Keys.ToList();
+                foreach (Dialog d in keys)
+                {
+                    if (d != null && !(d.Id == 583 || d.Id == 585 || d.Id == 584))
+                        FieldZoneReleaseVoice(d, true);
+                }
+            }
         }            
 
         // Path for the hunt/hot and cold
