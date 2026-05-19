@@ -138,14 +138,11 @@ public class VoicePlayer : SoundPlayer
         // but we don't want to stop the voice for these two messages since they are the ones indicating the end of the hunt.
         if (FieldZoneId == 276 && (messageNumber == 584 || messageNumber == 585 || messageNumber == 583)) {
             // need to fetch the dialogs and stop them.
-            lock (soundOfDialog)
+            List<Dialog> keys = soundOfDialog.Keys.ToList();
+            foreach (Dialog d in keys)
             {
-                List<Dialog> keys = soundOfDialog.Keys.ToList();
-                foreach (Dialog d in keys)
-                {
-                    if (d != null && !(d.Id == 583 || d.Id == 585 || d.Id == 584))
-                        FieldZoneReleaseVoice(d, true);
-                }
+                if (d != null && !(d.Id == 583 || d.Id == 585 || d.Id == 584))
+                    FieldZoneReleaseVoice(d, true);
             }
         }            
 
