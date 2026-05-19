@@ -15,6 +15,12 @@ public class BattleRainRenderer : MonoBehaviour
         {
             this.nf_BbgRainFlag = this.maxRain;
         }
+
+        // If you want a battle rain sound, set this to the appropriate SFX index.
+        // Example: this.rainSfxIndex = FF9DBAll.SFX_BTL_SE020000; // replace with correct constant
+        this.rainSfxIndex = -1;
+
+        this.prevRainFlag = this.nf_BbgRainFlag;
         this.mat = ShadersLoader.CreateShaderMaterial("SPS/SPSRain");
     }
 
@@ -24,11 +30,33 @@ public class BattleRainRenderer : MonoBehaviour
         {
             return;
         }
+
         this.nf_BbgRainFlag = (Int32)FF9StateSystem.Common.FF9.btl_rain;
         if (this.nf_BbgRainFlag > this.maxRain)
         {
             this.nf_BbgRainFlag = this.maxRain;
         }
+
+        // Start / stop rain SFX when flag transitions between 0 and non-zero.
+        if (this.prevRainFlag == 0 && this.nf_BbgRainFlag > 0)
+        {
+            if (this.rainSfxIndex >= 0)
+            {
+                // PlaySfxSound expects the index in the special-effect's sound table.
+                SoundLib.PlaySfxSound(this.rainSfxIndex, 1f, 0f, 1f);
+                this.isRainSoundPlaying = true;
+            }
+        }
+        else if (this.prevRainFlag > 0 && this.nf_BbgRainFlag == 0)
+        {
+            if (this.rainSfxIndex >= 0)
+            {
+                SoundLib.StopSfxSound(this.rainSfxIndex);
+                this.isRainSoundPlaying = false;
+            }
+        }
+        this.prevRainFlag = this.nf_BbgRainFlag;
+
         if (this.nf_BbgRainFlag == 0)
         {
             return;
@@ -103,4 +131,14 @@ public class BattleRainRenderer : MonoBehaviour
     private Material mat;
 
     private Int32 randSeed = -1;
+
+    // Tracks previous frame flag to start/stop SFX on transition
+    private Int32 prevRainFlag = 0;
+
+    // Set this to the appropriate SFX index if you want a rain sound.
+    // Use a defined FF9DBAll constant or a known sound index.
+    private Int32 rainSfxIndex = -1;
+
+    // Tracks whether we believe the rain SFX is playing.
+    private Boolean isRainSoundPlaying = false;
 }
