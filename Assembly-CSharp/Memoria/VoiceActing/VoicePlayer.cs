@@ -133,6 +133,18 @@ public class VoicePlayer : SoundPlayer
         String lang = Localization.CurrentSymbol;
         String pageIndex = dialog.SubPage.Count > 1 ? $"_P{Math.Max(0, dialog.CurrentPage - 1)}" : "";
 
+        // if hunt is ending due to downed (584) or timer expired (583)
+        // we want to stop all the other voices that are playing for the hunt to avoid overlap and confusion,
+        // but we don't want to stop the voice for these two messages since they are the ones indicating the end of the hunt.
+        if (FieldZoneId == 276 && (messageNumber == 584 || messageNumber == 583)) {
+            // need to fetch the dialogs and stop them.
+            soundOfDialog.All(dialogKVP => {
+                if (dialogKVP.Value != null && !(dialogKVP.Key.Id == 583 || dialogKVP.Key.Id == 584))
+                    FieldZoneReleaseVoice(dialogKVP.Key, true);
+                return true;
+            });
+        }            
+
         // Path for the hunt/hot and cold
         String specialAppend = GetSpecialAppend(FieldZoneId, messageNumber);
         if (specialAppend.Length > 0)
