@@ -7,6 +7,7 @@ using Memoria.Prime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using UnityEngine;
 
@@ -143,7 +144,11 @@ public class VoicePlayer : SoundPlayer
                 List<Dialog> keys = soundOfDialog.Keys.ToList();
                 foreach (Dialog d in keys)
                 {
-                    if (d != null && !(d.Id == 583 || d.Id == 585 || d.Id == 584))
+                    if (d != null && !(
+                        d.Id == specialMessageIds[lang][3] ||
+                        d.Id == specialMessageIds[lang][4] ||
+                        d.Id == specialMessageIds[lang][5]
+                    ))
                         FieldZoneReleaseVoice(d, true);
                 }
             }
@@ -318,14 +323,15 @@ public class VoicePlayer : SoundPlayer
 
     private static Dictionary<String, Int32[]> specialMessageIds = new Dictionary<String, Int32[]>()
     {
-        // Hunt, H&C start, H&C points
-        {"US", [540, 228, 301]},
-        {"UK", [540, 228, 301]},
-        {"JP", [560, 227, 306]},
-        {"GR", [560, 228, 307]},
-        {"FR", [550, 228, 307]},
-        {"IT", [560, 228, 307]},
-        {"ES", [552, 228, 307]}
+        // Hunt, H&C start, H&C points, hunt end zidane died, hunt end zidane&fraya died, hunt end timer expired
+        {"US", [540, 228, 301, 585, 584, 583]},
+        {"UK", [540, 228, 301, 585, 584, 583]},
+        //@todo add the hunt end message id's for other languages once we have them
+        {"JP", [560, 227, 306, 0, 0 ,0]},
+        {"GR", [560, 228, 307, 0, 0 ,0]},
+        {"FR", [550, 228, 307, 0, 0 ,0]},
+        {"IT", [560, 228, 307, 0, 0 ,0]},
+        {"ES", [552, 228, 307, 0, 0 ,0]}
     };
     private static String GetSpecialAppend(Int32 FieldZoneId, Int32 messageNumber)
     {
